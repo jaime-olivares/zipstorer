@@ -1,5 +1,5 @@
 ' ZipStorer, by Jaime Olivares
-' Website: zipstorer.codeplex.com
+' Website: http://github.com/jaime-olivares/zipstorer
 ' Version: 2.35 (March 14, 2010)
 
 Imports System.Collections.Generic
