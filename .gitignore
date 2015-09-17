@@ -1,0 +1,4 @@
+
+test/bin/*
+test/obj/*
+test/.vs/*
