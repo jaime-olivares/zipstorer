@@ -2,3 +2,5 @@
 test/bin/*
 test/obj/*
 test/.vs/*
+lib/bin/*
+lib/obj/*
