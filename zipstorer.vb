@@ -143,9 +143,7 @@ Public Class ZipStorer
   ' <param name="_access">File access mode as used in FileStream constructor</param>
   ' <returns>A valid ZipStorer object</returns>
   Public Shared Function Open(ByVal _filename As String, ByVal _access As FileAccess) As ZipStorer
-    Dim stream As Stream = CType(New FileStream(_filename, FileMode.Open, If(_access = FileAccess.Read, 
-
-FileAccess.Read, FileAccess.ReadWrite)), Stream)
+    Dim stream As Stream = CType(New FileStream(_filename, FileMode.Open, If(_access = FileAccess.Read, FileAccess.Read, FileAccess.ReadWrite)), Stream)
     Dim zip As ZipStorer = Open(stream, _access)
 
     zip.FileName = _filename
@@ -160,9 +158,7 @@ FileAccess.Read, FileAccess.ReadWrite)), Stream)
   ' <param name="_access">File access mode for stream operations</param>
   ' <returns>A valid ZipStorer object</returns>
   Public Shared Function Open(ByVal _stream As Stream, ByVal _access As FileAccess) As ZipStorer
-    If Not _stream.CanSeek AndAlso _access <> FileAccess.Read Then Throw New InvalidOperationException
-
-("Stream cannot seek")
+    If Not _stream.CanSeek AndAlso _access <> FileAccess.Read Then Throw New InvalidOperationException("Stream cannot seek")
 
     Dim zip As New ZipStorer()
     'zip.FileName = _filename
@@ -181,9 +177,7 @@ FileAccess.Read, FileAccess.ReadWrite)), Stream)
   ' <param name="_pathname">Full path of file to add to Zip storage</param>
   ' <param name="_filenameInZip">Filename and path as desired in Zip directory</param>
   ' <param name="_comment">Comment for stored file</param>        
-  Public Sub AddFile(ByVal _method As Compression, ByVal _pathname As String, ByVal _filenameInZip As 
-
-String, ByVal _comment As String)
+  Public Sub AddFile(ByVal _method As Compression, ByVal _pathname As String, ByVal _filenameInZip As String, ByVal _comment As String)
     If Access = FileAccess.Read Then Throw New InvalidOperationException("Writing is not alowed")
 
     Dim stream As New FileStream(_pathname, FileMode.Open, FileAccess.Read)
@@ -199,9 +193,7 @@ String, ByVal _comment As String)
   ' <param name="_source">Stream object containing the data to store in Zip</param>
   ' <param name="_modTime">Modification time of the data to store</param>
   ' <param name="_comment">Comment for stored file</param>
-  Public Sub AddStream(ByVal _method As Compression, ByVal _filenameInZip As String, ByVal _source As 
-
-Stream, ByVal _modTime As DateTime, ByVal _comment As String)
+  Public Sub AddStream(ByVal _method As Compression, ByVal _filenameInZip As String, ByVal _source As Stream, ByVal _modTime As DateTime, ByVal _comment As String)
     If Access = FileAccess.Read Then Throw New InvalidOperationException("Writing is not alowed")
 
     Dim offset As Long
@@ -219,13 +211,9 @@ Stream, ByVal _modTime As DateTime, ByVal _comment As String)
     zfe.FilenameInZip = NormalizedFilename(_filenameInZip)
     zfe.Comment = If(_comment Is Nothing, "", _comment)
 
-    ' Even though we write the header now, it will have to be rewritten, since we don't know compressed size 
-
-or crc.
+    ' Even though we write the header now, it will have to be rewritten, since we don't know compressed size or crc.
     zfe.Crc32 = 0  ' to be updated later
-    zfe.HeaderOffset = CType(Me.ZipFileStream.Position, UInteger)  ' offset within file of the start of this 
-
-local record
+    zfe.HeaderOffset = CType(Me.ZipFileStream.Position, UInteger)  ' offset within file of the start of this local record
     zfe.ModifyTime = _modTime
 
     ' Write local header
@@ -250,9 +238,7 @@ local record
       Dim centralOffset As UInteger = CType(Me.ZipFileStream.Position, UInteger)
       Dim centralSize As UInteger = 0
 
-      If Me.CentralDirImage IsNot Nothing Then Me.ZipFileStream.Write(CentralDirImage, 0, 
-
-CentralDirImage.Length)
+      If Me.CentralDirImage IsNot Nothing Then Me.ZipFileStream.Write(CentralDirImage, 0, CentralDirImage.Length)
 
       For i As Integer = 0 To Files.Count - 1
         Dim pos As Long = Me.ZipFileStream.Position
@@ -279,9 +265,7 @@ CentralDirImage.Length)
   ' </summary>
   ' <returns>List of all entries in directory</returns>
   Public Function ReadCentralDir() As List(Of ZipFileEntry)
-    If Me.CentralDirImage Is Nothing Then Throw New InvalidOperationException("Central directory currently 
-
-does not exist")
+    If Me.CentralDirImage Is Nothing Then Throw New InvalidOperationException("Central directory currently does not exist")
 
     Dim result As New List(Of ZipFileEntry)
     Dim pointer As Integer = 0
@@ -314,9 +298,7 @@ does not exist")
       zfe.HeaderSize = headerSize
       zfe.Crc32 = crc32
       zfe.ModifyTime = DosTimeToDateTime(modifyTime)
-      If commentSize > 0 Then zfe.Comment = encoder.GetString(CentralDirImage, pointer + 46 + filenameSize + 
-
-extraSize, commentSize)
+      If commentSize > 0 Then zfe.Comment = encoder.GetString(CentralDirImage, pointer + 46 + filenameSize + extraSize, commentSize)
 
       result.Add(zfe)
       pointer += (46 + filenameSize + extraSize + commentSize)
@@ -401,12 +383,8 @@ Integer))
   ' <param name="_zfes">List of Entries to remove from storage</param>
   ' <returns>True if success, false if not</returns>
   ' <remarks>This method only works for storage of type FileStream</remarks>
-  Public Shared Function RemoveEntries(ByRef _zip As ZipStorer, ByVal _zfes As List(Of ZipFileEntry)) As 
-
-Boolean
-    If Not TypeOf _zip.ZipFileStream Is FileStream Then Throw New InvalidOperationException("RemoveEntries 
-
-is allowed just over streams of type FileStream")
+  Public Shared Function RemoveEntries(ByRef _zip As ZipStorer, ByVal _zfes As List(Of ZipFileEntry)) As Boolean
+    If Not TypeOf _zip.ZipFileStream Is FileStream Then Throw New InvalidOperationException("RemoveEntries is allowed just over streams of type FileStream")
 
     'Get full list of entries
     Dim fullList As List(Of ZipFileEntry) = _zip.ReadCentralDir()
@@ -480,19 +458,11 @@ is allowed just over streams of type FileStream")
     Dim encodedFilename As Byte() = encoder.GetBytes(_zfe.FilenameInZip)
 
     Me.ZipFileStream.Write(New Byte() {80, 75, 3, 4, 20, 0}, 0, 6) ' No extra header
-    Me.ZipFileStream.Write(BitConverter.GetBytes(CType(If(_zfe.EncodeUTF8, &H800, 0), UShort)), 0, 2) ' 
-
-filename and comment encoding 
+    Me.ZipFileStream.Write(BitConverter.GetBytes(CType(If(_zfe.EncodeUTF8, &H800, 0), UShort)), 0, 2) ' filename and comment encoding 
     Me.ZipFileStream.Write(BitConverter.GetBytes(CType(_zfe.Method, UShort)), 0, 2)  ' zipping method
-    Me.ZipFileStream.Write(BitConverter.GetBytes(DateTimeToDosTime(_zfe.ModifyTime)), 0, 4) ' zipping date 
-
-and time
-    Me.ZipFileStream.Write(New Byte() {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 12) ' unused CRC, 
-
-un/compressed size, updated later
-    Me.ZipFileStream.Write(BitConverter.GetBytes(CType(encodedFilename.Length, UShort)), 0, 2) ' filename 
-
-length
+    Me.ZipFileStream.Write(BitConverter.GetBytes(DateTimeToDosTime(_zfe.ModifyTime)), 0, 4) ' zipping date and time
+    Me.ZipFileStream.Write(New Byte() {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 12) ' unused CRC, un/compressed size, updated later
+    Me.ZipFileStream.Write(BitConverter.GetBytes(CType(encodedFilename.Length, UShort)), 0, 2) ' filename length
     Me.ZipFileStream.Write(BitConverter.GetBytes(CType(0, UShort)), 0, 2) ' extra length
 
     Me.ZipFileStream.Write(encodedFilename, 0, encodedFilename.Length)
@@ -505,28 +475,20 @@ length
     Dim encodedComment As Byte() = encoder.GetBytes(_zfe.Comment)
 
     Me.ZipFileStream.Write(New Byte() {80, 75, 1, 2, 23, &HB, 20, 0}, 0, 8)
-    Me.ZipFileStream.Write(BitConverter.GetBytes(CType(If(_zfe.EncodeUTF8, &H800, 0), UShort)), 0, 2) ' 
-
-filename and comment encoding 
+    Me.ZipFileStream.Write(BitConverter.GetBytes(CType(If(_zfe.EncodeUTF8, &H800, 0), UShort)), 0, 2) ' filename and comment encoding 
     Me.ZipFileStream.Write(BitConverter.GetBytes(CType(_zfe.Method, UShort)), 0, 2)  ' zipping method
-    Me.ZipFileStream.Write(BitConverter.GetBytes(DateTimeToDosTime(_zfe.ModifyTime)), 0, 4)  ' zipping date 
-
-and time
+    Me.ZipFileStream.Write(BitConverter.GetBytes(DateTimeToDosTime(_zfe.ModifyTime)), 0, 4)  ' zipping date and time
     Me.ZipFileStream.Write(BitConverter.GetBytes(_zfe.Crc32), 0, 4) ' file CRC
     Me.ZipFileStream.Write(BitConverter.GetBytes(_zfe.CompressedSize), 0, 4) ' compressed file size
     Me.ZipFileStream.Write(BitConverter.GetBytes(_zfe.FileSize), 0, 4) ' uncompressed file size
-    Me.ZipFileStream.Write(BitConverter.GetBytes(CType(encodedFilename.Length, UShort)), 0, 2) ' Filename in 
-
-zip
+    Me.ZipFileStream.Write(BitConverter.GetBytes(CType(encodedFilename.Length, UShort)), 0, 2) ' Filename in zip
     Me.ZipFileStream.Write(BitConverter.GetBytes(CType(0, UShort)), 0, 2) ' extra length
     Me.ZipFileStream.Write(BitConverter.GetBytes(CType(encodedComment.Length, UShort)), 0, 2)
 
     Me.ZipFileStream.Write(BitConverter.GetBytes(CType(0, UShort)), 0, 2) ' disk=0
     Me.ZipFileStream.Write(BitConverter.GetBytes(CType(0, UShort)), 0, 2) ' file type: binary
     Me.ZipFileStream.Write(BitConverter.GetBytes(CType(0, UShort)), 0, 2) ' Internal file attributes
-    Me.ZipFileStream.Write(BitConverter.GetBytes(CType(&H8100, UShort)), 0, 2) ' External file attributes 
-
-(normal/readable)
+    Me.ZipFileStream.Write(BitConverter.GetBytes(CType(&H8100, UShort)), 0, 2) ' External file attributes (normal/readable)
     Me.ZipFileStream.Write(BitConverter.GetBytes(_zfe.HeaderOffset), 0, 4)  ' Offset of header
 
     Me.ZipFileStream.Write(encodedFilename, 0, encodedFilename.Length)
@@ -599,9 +561,7 @@ zip
     _zfe.CompressedSize = CType(Me.ZipFileStream.Position - posStart, UInteger)
 
     ' Verify for real compression
-    If _zfe.Method = Compression.Deflate AndAlso Not Me.ForceDeflating AndAlso _source.CanSeek AndAlso 
-
-_zfe.CompressedSize > _zfe.FileSize Then
+    If _zfe.Method = Compression.Deflate AndAlso Not Me.ForceDeflating AndAlso _source.CanSeek AndAlso _zfe.CompressedSize > _zfe.FileSize Then
       ' Start operation again with Store algorithm
       _zfe.Method = Compression.Store
       Me.ZipFileStream.Position = posStart
