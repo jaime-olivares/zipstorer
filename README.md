@@ -1,5 +1,8 @@
 # ZipStorer
-A Pure C# Class for storing files in Zip
+A Pure C# class for storing files in Zip format
+
+[![NuGet](https://img.shields.io/nuget/v/ZipStorer.svg)](https://www.nuget.org/packages/ZipStorer/)
+[![github](https://img.shields.io/github/stars/jaime-olivares/zipstorer.svg)]()
 
 ## Introduction
 There are many techniques to produce Zip files in a .NET environment, like the following:
@@ -12,7 +15,7 @@ There are many techniques to produce Zip files in a .NET environment, like the f
 
 ZipStorer is a minimalistic class to create Zip files and store/retrieve files to/from it, by using the Deflate algorithm. No other compression methods supported.
 
-Notice that .NET 3.0 and 3.5 Frameworks come with the *ZipPackage* class, but it is not available for .NET 2.0 or Compact Framework applications. A restriction of *ZipPackage* is that you cannot avoid generating an extra file inside named *[Content_Type].xml*.
+Notice that .NET 3.0 and up Frameworks come with the *ZipPackage* class, but it is not available for .NET 2.0 or Compact Framework applications. A restriction of *ZipPackage* is that you cannot avoid generating an extra file inside named *[Content_Type].xml*.
 
 ## Using the code
 The ZipStorer class is the unique one needed to create the zip file. It contains a nested structure *(ZipFileEntry)* for collecting each directory entry. The class has been declared inside the System.IO namespace. 
