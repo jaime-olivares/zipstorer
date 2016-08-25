@@ -101,19 +101,18 @@ ZipStorer.RemoveEntries(ref zip, removeList);
 The current release of ZipStorer supports both files and streams for creating and opening a zip storage. Several methods are overloaded for this dual support. The advantage of file-oriented methods is simplicity, since those methods will open or create files internally. On the other hand, stream-oriented methods are more flexible by allowing to manage zip storages in streams different than files. File-oriented methods will invoke internally to equivalent stream-oriented methods. Notice that not all streams will apply, because the library requires the streams to be randomly accessed (CanSeek = true). The RemoveEntries method will work only if the zip storage is a file.
 
 ````csharp
-// File-oriented methods:
-        public static ZipStorer Create(string _filename, string _comment)
-        public static ZipStorer Open(string _filename, FileAccess _access)
-        public void AddFile(Compression _method, string _pathname, string _filenameInZip, string _comment)
-        public bool ExtractFile(ZipFileEntry _zfe, string _filename)
-        public static bool RemoveEntries(ref ZipStorer _zip, List<zipfileentry> _zfes)  // No stream-oriented equivalent
+    // File-oriented methods:
+    public static ZipStorer Create(string _filename, string _comment)
+    public static ZipStorer Open(string _filename, FileAccess _access)
+    public void AddFile(Compression _method, string _pathname, string _filenameInZip, string _comment)
+    public bool ExtractFile(ZipFileEntry _zfe, string _filename)
+    public static bool RemoveEntries(ref ZipStorer _zip, List<zipfileentry> _zfes)  // No stream-oriented equivalent
 
-// Stream-oriented methods:
-        public static ZipStorer Create(Stream _stream, string _comment)
-        public static ZipStorer Open(Stream _stream, FileAccess _access)
-        public void AddStream(Compression _method, 
-	string _filenameInZip, Stream _source, DateTime _modTime, string _comment)
-        public bool ExtractFile(ZipFileEntry _zfe, Stream _stream)</zipfileentry>
+    // Stream-oriented methods:
+    public static ZipStorer Create(Stream _stream, string _comment)
+    public static ZipStorer Open(Stream _stream, FileAccess _access)
+    public void AddStream(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment)
+    public bool ExtractFile(ZipFileEntry _zfe, Stream _stream)</zipfileentry>
 ````
         
 ## Filename encoding
