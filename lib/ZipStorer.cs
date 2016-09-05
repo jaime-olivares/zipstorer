@@ -390,6 +390,29 @@ namespace System.IO.Compression
             return true;
         }
         /// <summary>
+        /// Copy the contents of a stored file into a byte array
+        /// </summary>
+        /// <param name="_zfe">Entry information of file to extract</param>
+        /// <param name="_file">Byte array with uncompressed data</param>
+        /// <returns>True if success, false if not.</returns>
+        /// <remarks>Unique compression methods are Store and Deflate</remarks>
+        public bool ExtractFile(ZipFileEntry _zfe, out byte[] _file)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                if (ExtractFile(_zfe, ms))
+                {
+                    _file = ms.ToArray();
+                    return true;
+                }
+                else
+                {
+                    _file = null;
+                    return false;
+                }
+            }
+        }
+        /// <summary>
         /// Removes one of many files in storage. It creates a new Zip file.
         /// </summary>
         /// <param name="_zip">Reference to the current Zip object</param>
