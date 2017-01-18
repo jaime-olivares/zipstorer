@@ -83,6 +83,8 @@ namespace System.IO.Compression
         private List<ZipFileEntry> Files = new List<ZipFileEntry>();
         // Filename of storage file
         private string FileName;
+        // stream openend internally, true when Open or Create with filename, false when Open or Create with stream
+        private static bool streamOpenedInternally;
         // Stream object of storage file
         private Stream ZipFileStream;
         // General comment
@@ -127,6 +129,7 @@ namespace System.IO.Compression
         public static ZipStorer Create(string _filename, string _comment)
         {
             Stream stream = new FileStream(_filename, FileMode.Create, FileAccess.ReadWrite);
+            streamOpenedInternally = true;
 
             ZipStorer zip = Create(stream, _comment);
             zip.Comment = _comment;
@@ -158,6 +161,7 @@ namespace System.IO.Compression
         public static ZipStorer Open(string _filename, FileAccess _access)
         {
             Stream stream = (Stream)new FileStream(_filename, FileMode.Open, _access == FileAccess.Read ? FileAccess.Read : FileAccess.ReadWrite);
+            streamOpenedInternally = true;
 
             ZipStorer zip = Open(stream, _access);
             zip.FileName = _filename;
@@ -277,8 +281,11 @@ namespace System.IO.Compression
             if (this.ZipFileStream != null)
             {
                 this.ZipFileStream.Flush();
-                this.ZipFileStream.Dispose();
-                this.ZipFileStream = null;
+                if (streamOpenedInternally)
+                {
+                    this.ZipFileStream.Dispose();
+                    this.ZipFileStream = null;
+                }
             }
         }
         /// <summary>
