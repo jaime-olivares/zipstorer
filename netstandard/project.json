@@ -1,0 +1,40 @@
+{
+  "version": "3.0.0.0-netstandard",
+  "name": "ZipStorer",
+  "title": "ZipStorer",
+  "authors": [ "Jaime Olivares" ],
+  "description": "Zipstorer - .net standard version",
+
+  "packOptions": {
+    "summary": "Zipstorer - .net standard version",
+    "owners": [ "jaime-olivares" ],
+    "releaseNotes": "Added support for .net standard 1.6",
+    "tags": ["zip", "unzip", "compress", "compression"],
+    "requireLicenseAcceptance": false,
+    "repository": {
+      "type": "git",
+      "url": "http://github.com/jaime-olivares/zipstorer"
+    }
+  },
+
+  "dependencies": {
+    "NETStandard.Library": "1.6.0"
+  },
+
+  "frameworks": {
+    "netstandard1.6": {
+      "imports": "dnxcore50"
+    }
+  },
+
+  "tooling": {
+    "defaultNamespace": "ZipStorer"
+  },
+
+  "buildOptions": {
+    "compile": "../lib/zipstorer.cs",
+    "define": [
+      "NETSTANDARD"
+    ]
+  }
+}

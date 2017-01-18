@@ -120,16 +120,26 @@ Traditionally, the ZIP format supported DOS encoding system (a.k.a. IBM Code Pag
 
 ZipStorer class detects UTF-8 encoding by reading the proper flag in each file's header information. For enforcing filenames to be encoded with UTF-8 system, set the *EncodeUTF8* member of ZipStorer class to true. All new filenames added will be encoded with UTF8. Notice this doesn't affect stored file contents at all. Also be aware that Windows Explorer's embedded Zip format facility does not recognize well the UTF-8 encoding system, as WinZip or WinRAR do.
 
+## .Net Standard support
+Now ZipStorer support .Net Standard 1.6 and hence a broad range of platforms. For using this version, it is necessary to indicate the specific [nuget package](https://www.nuget.org/packages/ZipStorer/3.0.0-netstandard)
+
+If developing with Visual Studio Code, the `project.json` file must indicate:
+````json
+    "dependencies": {
+        "ZipStorer": "3.0.0-netstandard"
+    }
+````
+
 ## Advantages and usage
 ZipStorer has the following advantages:
 
 * It is a short and monolithic C# class that can be embedded as source code in any project (1 source file of 33K, 700+ lines)
 * No external libraries, no extra DLLs in application deployments
 * No Interop calls, increments portability to Mono and other non-Windows platforms
-* Can also be implemented with Mono and .NET Compact Framework
+* Can also be implemented with Mono, .NET Compact Framework and .Net Standard
 * Fast storing and extracting, because the code is simple and short
 * UTF8 Encoding support and ePUB compatibility
  
 For implementing this class into your own project, just add the *ZipStorer.cs* class file and start using it without any restriction (see [LICENSE.md](License)).
 
-ZipStorer is also available as a [nuget package](https://www.nuget.org/packages/ZipStorer/)
+ZipStorer is also available as a [nuget package](https://www.nuget.org/packages/ZipStorer/) for classic .Net

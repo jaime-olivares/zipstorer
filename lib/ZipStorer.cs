@@ -1,12 +1,26 @@
 // ZipStorer, by Jaime Olivares
 // Website: http://github.com/jaime-olivares/zipstorer
-// Version: 2.35 (March 14, 2010)
+// Version: 3.00 (January 18, 2017)
 
 using System.Collections.Generic;
 using System.Text;
 
 namespace System.IO.Compression
 {
+    #if NETSTANDARD
+    /// <summary>
+    /// Extension method for covering missing Close() method in .Net Standard
+    /// </summary>
+    public static class StreamExtension
+    {
+        public static void Close(this Stream stream)
+        {
+            stream.Dispose(); 
+            GC.SuppressFinalize(stream);
+        }
+    }
+    #endif
+
     /// <summary>
     /// Unique class for compression/decompression file. Represents a Zip file.
     /// </summary>
