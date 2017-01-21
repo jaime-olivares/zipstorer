@@ -1,6 +1,7 @@
 ' ZipStorer, by Jaime Olivares
 ' Website: http://github.com/jaime-olivares/zipstorer
 ' Version: 2.35 (March 14, 2010)
+' This source code is based in an old C# code and will not include recent modifications
 
 Imports System.Collections.Generic
 Imports System.Text

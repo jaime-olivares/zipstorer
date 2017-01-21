@@ -1,10 +1,8 @@
 .DS_Store
-test/bin
-test/obj
+.suo
+**/bin
+**/obj
 test/.vs/*
-lib/bin/*
-lib/obj/*
-netstandard/bin/debug/netstandard1.6
 netstandard/obj
 **/project.lock.json
 **/*.symbols.nupkg

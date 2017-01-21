@@ -1,6 +1,6 @@
 // ZipStorer, by Jaime Olivares
 // Website: http://github.com/jaime-olivares/zipstorer
-// Version: 3.00 (January 18, 2017)
+// Version: 3.2.0 (January 20, 2017)
 
 using System.Collections.Generic;
 using System.Text;
@@ -228,7 +228,7 @@ namespace System.IO.Compression
             zfe.Method = _method;
             zfe.EncodeUTF8 = this.EncodeUTF8;
             zfe.FilenameInZip = NormalizedFilename(_filenameInZip);
-            zfe.Comment = (_comment == null ? "" : _comment);
+            zfe.Comment = _comment ?? "";
 
             // Even though we write the header now, it will have to be rewritten, since we don't know compressed size or crc.
             zfe.Crc32 = 0;  // to be updated later
@@ -321,7 +321,8 @@ namespace System.IO.Compression
                 zfe.HeaderOffset = headerOffset;
                 zfe.HeaderSize = headerSize;
                 zfe.Crc32 = crc32;
-                zfe.ModifyTime = DosTimeToDateTime(modifyTime);
+                zfe.ModifyTime = DosTimeToDateTime(modifyTime) ?? DateTime.Now;
+
                 if (commentSize > 0)
                     zfe.Comment = encoder.GetString(CentralDirImage, pointer + 46 + filenameSize + extraSize, commentSize);
 
@@ -676,15 +677,19 @@ namespace System.IO.Compression
                 (_dt.Second / 2) | (_dt.Minute << 5) | (_dt.Hour << 11) | 
                 (_dt.Day<<16) | (_dt.Month << 21) | ((_dt.Year - 1980) << 25));
         }
-        private DateTime DosTimeToDateTime(uint _dt)
+        private DateTime? DosTimeToDateTime(uint _dt)
         {
-            return new DateTime(
-                (int)(_dt >> 25) + 1980,
-                (int)(_dt >> 21) & 15,
-                (int)(_dt >> 16) & 31,
-                (int)(_dt >> 11) & 31,
-                (int)(_dt >> 5) & 63,
-                (int)(_dt & 31) * 2);
+            int year = (int)(_dt >> 25) + 1980;
+            int month = (int)(_dt >> 21) & 15;
+            int day = (int)(_dt >> 16) & 31;
+            int hours = (int)(_dt >> 11) & 31;
+            int minutes = (int)(_dt >> 5) & 63;
+            int seconds = (int)(_dt & 31) * 2;
+
+            if (month==0 || day == 0)
+                return null;
+
+            return new DateTime(year, month, day, hours, minutes, seconds);
         }
 
         /* CRC32 algorithm

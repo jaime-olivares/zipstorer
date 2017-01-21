@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>ZipStorer</id>
+        <version>3.2.1</version>
+        <authors>jaime-olivares</authors>
+        <description>A Pure C# class to store files in Zip</description>
+        <language>en-US</language>
+        <projectUrl>http://github.com/jaime-olivares/zipstorer</projectUrl>
+        <licenseUrl>https://github.com/jaime-olivares/zipstorer/blob/master/LICENSE.md</licenseUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <tags>zip unzip compress compression</tags>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="System.IO" targetFramework="net20, netstandard1.6" />
+        </frameworkAssemblies>
+    </metadata>
+    <files>
+        <file src="net20/bin/Release/ZipStorer.dll" target="lib/net20"></file>
+        <file src="netstandard/bin/Release/netstandard1.6/ZipStorer.dll" target="lib/netstandard1.6"></file>
+    </files>
+</package>

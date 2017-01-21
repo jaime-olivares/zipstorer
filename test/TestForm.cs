@@ -194,7 +194,7 @@ namespace ZipStorerTest
                 bool result;
                 foreach (ZipStorer.ZipFileEntry entry in dir)
                 {
-                    path = Path.Combine(TextTargetFolder.Text, Path.GetFileName(entry.FilenameInZip));
+                    path = Path.Combine(TextTargetFolder.Text, entry.FilenameInZip);
                     result = zip.ExtractFile(entry, path);
                     this.listBox2.Items.Add(path + (result ? "" : " (error)"));
                 }
