@@ -29,7 +29,7 @@
   },
 
   "buildOptions": {
-    "compile": "../lib/zipstorer.cs",
+    "compile": "../src/zipstorer.cs",
     "define": [
       "NETSTANDARD"
     ]
