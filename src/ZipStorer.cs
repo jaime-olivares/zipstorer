@@ -610,7 +610,7 @@ namespace System.IO.Compression
             Stream outStream;
 
             long posStart = this.ZipFileStream.Position;
-            long sourceStart = _source.CanSeek ? 0 : _source.Position;
+            long sourceStart = _source.CanSeek ? _source.Position : 0;
 
             if (_zfe.Method == Compression.Store)
                 outStream = this.ZipFileStream;
