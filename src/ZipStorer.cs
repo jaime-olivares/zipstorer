@@ -440,15 +440,15 @@ namespace System.IO.Compression
 
 
             //Get full list of entries
-            List<ZipFileEntry> fullList = _zip.ReadCentralDir();
+            var fullList = _zip.ReadCentralDir();
 
             //In order to delete we need to create a copy of the zip file excluding the selected items
-            string tempZipName = Path.GetTempFileName();
-            string tempEntryName = Path.GetTempFileName();
+            var tempZipName = Path.GetTempFileName();
+            var tempEntryName = Path.GetTempFileName();
 
             try
             {
-                ZipStorer tempZip = ZipStorer.Create(tempZipName, string.Empty);
+                var tempZip = ZipStorer.Create(tempZipName, string.Empty);
 
                 foreach (ZipFileEntry zfe in fullList)
                 {
