@@ -29,11 +29,13 @@ namespace System.IO.Compression
         /// <summary>
         /// Compression method enumeration
         /// </summary>
-        public enum Compression : ushort { 
+        public enum Compression : ushort 
+        { 
             /// <summary>Uncompressed storage</summary> 
-            Store = 0, 
+            Store = 0,
             /// <summary>Deflate compression method</summary>
-            Deflate = 8 }
+            Deflate = 8 
+        }
 
         /// <summary>
         /// Represents an entry in Zip file directory
@@ -94,7 +96,7 @@ namespace System.IO.Compression
         // File access for Open method
         private FileAccess Access;
         // Static CRC32 Table
-        private static UInt32[] CrcTable = null;
+        private static readonly UInt32[] CrcTable = null;
         // Default filename encoder
         private static Encoding DefaultEncoding = Encoding.GetEncoding(437);
         #endregion
@@ -197,9 +199,8 @@ namespace System.IO.Compression
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not alowed");
 
-            FileStream stream = new FileStream(_pathname, FileMode.Open, FileAccess.Read);
-            AddStream(_method, _filenameInZip, stream, File.GetLastWriteTime(_pathname), _comment);
-            stream.Close();
+            using (var fs = new FileStream(_pathname, FileMode.Open, FileAccess.Read))
+                AddStream(_method, _filenameInZip, fs, File.GetLastWriteTime(_pathname), _comment);
         }
         /// <summary>
         /// Add full contents of a stream into the Zip storage
@@ -211,41 +212,75 @@ namespace System.IO.Compression
         /// <param name="_comment">Comment for stored file</param>
         public void AddStream(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment)
         {
+            var posStart = this.ZipFileStream.Position;
+            var sourceStart = _source.CanSeek ? _source.Position : 0;
+
+            using (var tg = Add(_method == Compression.Store ? CompressionLevel.NoCompression : CompressionLevel.Optimal, _filenameInZip, _modTime, _comment))
+                _source.CopyTo(tg);
+
+            var zfe = Files[Files.Count - 1];
+
+            // Verify for real compression
+            if (zfe.Method == Compression.Deflate && !this.ForceDeflating && _source.CanSeek && zfe.CompressedSize > zfe.FileSize)
+            {
+                // Start operation again with Store algorithm
+                this.ZipFileStream.Position = posStart;
+                this.ZipFileStream.SetLength(posStart);
+                _source.Position = sourceStart;
+                Files.RemoveAt(Files.Count - 1);
+
+                using (var tg = Add(CompressionLevel.NoCompression, _filenameInZip, _modTime, _comment))
+                    _source.CopyTo(tg);
+            }
+        }
+        /// <summary>
+        /// returns a writeable stream where the file contents can be written to
+        /// </summary>
+        /// <param name="_level">The compression level</param>
+        /// <param name="_filenameInZip">Filename and path as desired in Zip directory</param>
+        /// <param name="_modTime">Modification time of the data to store</param>
+        /// <param name="_comment">Comment for stored file</param>
+        /// <returns>A writeable stream</returns>
+        public Stream Add(CompressionLevel _level, string _filenameInZip, DateTime _modTime, string _comment)
+        {
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not alowed");
 
-            long offset;
-            if (this.Files.Count==0)
-                offset = 0;
-            else
-            {
-                ZipFileEntry last = this.Files[this.Files.Count-1];
-                offset = last.HeaderOffset + last.HeaderSize;
-            }
-
             // Prepare the fileinfo
-            ZipFileEntry zfe = new ZipFileEntry();
-            zfe.Method = _method;
-            zfe.EncodeUTF8 = this.EncodeUTF8;
-            zfe.FilenameInZip = NormalizedFilename(_filenameInZip);
-            zfe.Comment = _comment ?? "";
-
-            // Even though we write the header now, it will have to be rewritten, since we don't know compressed size or crc.
-            zfe.Crc32 = 0;  // to be updated later
-            zfe.HeaderOffset = (uint)this.ZipFileStream.Position;  // offset within file of the start of this local record
-            zfe.ModifyTime = _modTime;
+            var zfe = new ZipFileEntry()
+            {
+                Method = _level == CompressionLevel.NoCompression ? Compression.Store : Compression.Deflate,
+                EncodeUTF8 = this.EncodeUTF8,
+                FilenameInZip = NormalizedFilename(_filenameInZip),
+                Comment = _comment ?? "",
+                Crc32 = 0,  // to be updated later
+                HeaderOffset = (uint)this.ZipFileStream.Position,  // offset within file of the start of this local record
+                ModifyTime = _modTime
+            };
 
             // Write local header
             WriteLocalHeader(ref zfe);
             zfe.FileOffset = (uint)this.ZipFileStream.Position;
 
+            // Select the destination
+            var target =
+                zfe.Method == Compression.Store
+                ? this.ZipFileStream
+                : new DeflateStream(this.ZipFileStream, _level, true);
+
             // Write file to zip (store)
-            Store(ref zfe, _source);
-            _source.Close();
+            return new Crc32CalculatingStream(target, self =>
+            {
+                if (target != this.ZipFileStream)
+                    target.Close();
 
-            this.UpdateCrcAndSizes(ref zfe);
+                zfe.Crc32 = self.Crc32;
+                zfe.FileSize = (uint)self.Length;
+                zfe.CompressedSize = (uint)this.ZipFileStream.Position - zfe.FileOffset;
 
-            Files.Add(zfe);
+                this.UpdateCrcAndSizes(ref zfe);
+                Files.Add(zfe);
+            });
         }
         /// <summary>
         /// Updates central directory (if pertinent) and close the Zip storage
@@ -350,15 +385,23 @@ namespace System.IO.Compression
             if (Directory.Exists(_filename))
                 return true;
 
-            Stream output = new FileStream(_filename, FileMode.Create, FileAccess.Write);
-            bool result = ExtractFile(_zfe, output);
-            if (result)
-                output.Close();
+            try
+            {
+                // Open the archive first to avoid making zero byte files on failure
+                using (var ss = Extract(_zfe))
+                using (var fs = new FileStream(_filename, FileMode.Create, FileAccess.Write))
+                    ss.CopyTo(fs);
+            }
+            catch
+            {
+                // Compatibility with previous API
+                return false;
+            }
 
             File.SetCreationTime(_filename, _zfe.ModifyTime);
             File.SetLastWriteTime(_filename, _zfe.ModifyTime);
             
-            return result;
+            return true;
         }
         /// <summary>
         /// Copy the contents of a stored file into an opened stream
@@ -372,37 +415,52 @@ namespace System.IO.Compression
             if (!_stream.CanWrite)
                 throw new InvalidOperationException("Stream cannot be written");
 
+            try
+            {
+                using (var ss = Extract(_zfe))
+                    ss.CopyTo(_stream);
+                
+                return true;
+            }
+            catch
+            {
+                // Compatibility with previous API
+                return false;
+            }
+        }
+        /// <summary>
+        /// Opens the specified entry and returns a stream with the contents
+        /// </summary>
+        /// <returns>The stream with contents.</returns>
+        /// <param name="zfe">The file entry.</param>
+        public Stream Extract(ZipFileEntry zfe)
+        {
             // check signature
             byte[] signature = new byte[4];
-            this.ZipFileStream.Seek(_zfe.HeaderOffset, SeekOrigin.Begin);
+            this.ZipFileStream.Seek(zfe.HeaderOffset, SeekOrigin.Begin);
             this.ZipFileStream.Read(signature, 0, 4);
             if (BitConverter.ToUInt32(signature, 0) != 0x04034b50)
-                return false;
+                throw new InvalidDataException($"Found signature {signature}, but expected {0x04034b50}");
+
+            this.ZipFileStream.Seek(zfe.FileOffset, SeekOrigin.Begin);
 
             // Select input stream for inflating or just reading
-            Stream inStream;
-            if (_zfe.Method == Compression.Store)
-                inStream = this.ZipFileStream;
-            else if (_zfe.Method == Compression.Deflate)
-                inStream = new DeflateStream(this.ZipFileStream, CompressionMode.Decompress, true);
+            if (zfe.Method == Compression.Store)
+                return new OffsetViewStream(
+                    this.ZipFileStream,
+                    zfe.FileOffset,
+                    zfe.FileSize,
+                    false
+                );
+            else if (zfe.Method == Compression.Deflate)
+                return new OffsetViewStream(
+                    new DeflateStream(this.ZipFileStream, CompressionMode.Decompress, true),
+                    0, // The deflater handles the offset
+                    zfe.FileSize,
+                    true
+                );
             else
-                return false;
-
-            // Buffered copy
-            byte[] buffer = new byte[16384];
-            this.ZipFileStream.Seek(_zfe.FileOffset, SeekOrigin.Begin);
-            uint bytesPending = _zfe.FileSize;
-            while (bytesPending > 0)
-            {
-                int bytesRead = inStream.Read(buffer, 0, (int)Math.Min(bytesPending, buffer.Length));
-                _stream.Write(buffer, 0, bytesRead);
-                bytesPending -= (uint)bytesRead;
-            }
-            _stream.Flush();
-
-            if (_zfe.Method == Compression.Deflate)
-                inStream.Dispose();
-            return true;
+                throw new InvalidDataException($"Unsupported compression method {zfe.Method}");
         }
         /// <summary>
         /// Copy the contents of a stored file into a byte array
@@ -413,18 +471,29 @@ namespace System.IO.Compression
         /// <remarks>Unique compression methods are Store and Deflate</remarks>
         public bool ExtractFile(ZipFileEntry _zfe, out byte[] _file)
         {
-            using (MemoryStream ms = new MemoryStream())
+            var count = (int)_zfe.FileSize;
+            var offset = 0;
+
+            _file = new byte[count];
+
+            try
             {
-                if (ExtractFile(_zfe, ms))
+                using (var ss = Extract(_zfe))
                 {
-                    _file = ms.ToArray();
-                    return true;
+                    int read;
+                    while (count > 0 && (read = ss.Read(_file, offset, count)) != 0)
+                    {
+                        count -= read;
+                        offset += read;
+                    }
                 }
-                else
-                {
-                    _file = null;
-                    return false;
-                }
+
+                return true;
+            }
+            catch
+            {
+                // Compatibility with previous API
+                return false;
             }
         }
         /// <summary>
@@ -609,58 +678,7 @@ namespace System.IO.Compression
             this.ZipFileStream.Write(BitConverter.GetBytes((ushort)encodedComment.Length), 0, 2);
             this.ZipFileStream.Write(encodedComment, 0, encodedComment.Length);
         }
-        // Copies all source file into storage file
-        private void Store(ref ZipFileEntry _zfe, Stream _source)
-        {
-            byte[] buffer = new byte[16384];
-            int bytesRead;
-            uint totalRead = 0;
-            Stream outStream;
 
-            long posStart = this.ZipFileStream.Position;
-            long sourceStart = _source.Position;
-
-            if (_zfe.Method == Compression.Store)
-                outStream = this.ZipFileStream;
-            else
-                outStream = new DeflateStream(this.ZipFileStream, CompressionMode.Compress, true);
-
-            _zfe.Crc32 = 0 ^ 0xffffffff;
-            
-            do
-            {
-                bytesRead = _source.Read(buffer, 0, buffer.Length);
-                totalRead += (uint)bytesRead;
-                if (bytesRead > 0)
-                {
-                    outStream.Write(buffer, 0, bytesRead);
-
-                    for (uint i = 0; i < bytesRead; i++)
-                    {
-                        _zfe.Crc32 = ZipStorer.CrcTable[(_zfe.Crc32 ^ buffer[i]) & 0xFF] ^ (_zfe.Crc32 >> 8);
-                    }
-                }
-            } while (bytesRead == buffer.Length);
-            outStream.Flush();
-
-            if (_zfe.Method == Compression.Deflate)
-                outStream.Dispose();
-
-            _zfe.Crc32 ^= 0xffffffff;
-            _zfe.FileSize = totalRead;
-            _zfe.CompressedSize = (uint)(this.ZipFileStream.Position - posStart);
-
-            // Verify for real compression
-            if (_zfe.Method == Compression.Deflate && !this.ForceDeflating && _source.CanSeek && _zfe.CompressedSize > _zfe.FileSize)
-            {
-                // Start operation again with Store algorithm
-                _zfe.Method = Compression.Store;
-                this.ZipFileStream.Position = posStart;
-                this.ZipFileStream.SetLength(posStart);
-                _source.Position = sourceStart;
-                this.Store(ref _zfe, _source);
-            }
-        }
         /* DOS Date and time:
             MS-DOS date. The date is a packed value with the following format. Bits Description 
                 0-4 Day of the month (131) 
@@ -771,6 +789,354 @@ namespace System.IO.Compression
             catch { }
 
             return false;
+        }
+        #endregion
+
+        #region IDisposable Members
+        /// <summary>
+        /// Closes the Zip file stream
+        /// </summary>
+        public void Dispose()
+        {
+            this.Close();
+        }
+        #endregion
+
+        /// <summary>
+        /// A stream that wraps a target stream and does
+        /// on-the-fly Crc32 calculations
+        /// </summary>
+        private class Crc32CalculatingStream : Stream
+        {
+            /// <summary>
+            /// The stream that data is written to
+            /// </summary>
+            private readonly Stream m_target;
+
+            /// <summary>
+            /// The current CRC32 value
+            /// </summary>
+            public UInt32 Crc32 { get; private set; } = 0 ^ 0xffffffff;
+
+            /// <summary>
+            /// The number of bytes written
+            /// </summary>
+            private long m_written = 0;
+
+            /// <summary>
+            /// An action to call once the stream is disposed
+            /// </summary>
+            private readonly Action<Crc32CalculatingStream> m_complete;
+            /// <summary>
+            /// A flag keeping track of the instance being disposed
+            /// </summary>
+            private bool m_isDisposed = false;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="T:System.IO.Compression.ZipStorer.Crc32CalculatingStream"/> class.
+            /// </summary>
+            /// <param name="target">The stream where data is written to.</param>
+            /// <param name="onComplete">A callback method to invoke when the stream is closed.</param>
+            public Crc32CalculatingStream(Stream target, Action<Crc32CalculatingStream> onComplete)
+            {
+                m_target = target;
+                m_complete = onComplete;
+            }
+
+            /// <summary>
+            /// Gets a value indicating whether this
+            /// <see cref="T:System.IO.Compression.ZipStorer.Crc32CalculatingStream"/> can be read.
+            /// </summary>
+            public override bool CanRead { get { return false; } }
+            /// <summary>
+            /// Gets a value indicating whether this
+            /// <see cref="T:System.IO.Compression.ZipStorer.Crc32CalculatingStream"/> can seek.
+            /// </summary>
+            public override bool CanSeek { get { return false; } }
+            /// <summary>
+            /// Gets a value indicating whether this
+            /// <see cref="T:System.IO.Compression.ZipStorer.Crc32CalculatingStream"/> can be written.
+            /// </summary>
+            public override bool CanWrite { get { return true; } }
+            /// <summary>
+            /// Gets the length of the stream.
+            /// </summary>
+            public override long Length { get { return m_written; } }
+            /// <summary>
+            /// Gets the position in the stream.
+            /// </summary>
+            public override long Position
+            {
+                get { return m_target.Position; }
+                set { throw new NotSupportedException(); }
+            }
+
+            /// <summary>
+            /// Flushes the current data
+            /// </summary>
+            public override void Flush()
+            { m_target.Flush(); }
+
+            /// <summary>
+            /// Unsupported seeking operation
+            /// </summary>
+            /// <returns>Throws a <see cref="NotSupportedException"/>.</returns>
+            /// <param name="offset">Unused offset.</param>
+            /// <param name="origin">Unused origin.</param>
+            public override long Seek(long offset, SeekOrigin origin)
+            { throw new NotSupportedException(); }
+
+            /// <summary>
+            /// Unsupported, throws a <see cref="NotSupportedException"/>
+            /// </summary>
+            /// <param name="value">Unused value.</param>
+            public override void SetLength(long value)
+            { throw new NotSupportedException(); }
+
+            /// <summary>
+            /// Unsupported, throws a <see cref="NotSupportedException"/>
+            /// </summary>
+            /// <returns>Throws a <see cref="NotSupportedException"/>.</returns>
+            /// <param name="buffer">Unused buffer.</param>
+            /// <param name="offset">Unused offset.</param>
+            /// <param name="count">Unused count.</param>
+            public override int Read(byte[] buffer, int offset, int count)
+            { throw new NotSupportedException(); }
+
+            /// <summary>
+            /// Writes the data from the buffer to the stream
+            /// </summary>
+            /// <param name="buffer">The buffer with data.</param>
+            /// <param name="offset">The offset into the buffer.</param>
+            /// <param name="count">The number of bytes to write.</param>
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                m_target.Write(buffer, offset, count);
+                UpdateCrc32(buffer, offset, count);
+            }
+
+            /// <summary>
+            /// Writes the data from the buffer to the stream
+            /// </summary>
+            /// <returns>An awaitable task.</returns>
+            /// <param name="buffer">The buffer with data.</param>
+            /// <param name="offset">The offset into the buffer.</param>
+            /// <param name="count">The number of bytes to write.</param>
+            /// <param name="cancellationToken">The cancellation token.</param>
+            public override Threading.Tasks.Task WriteAsync(byte[] buffer, int offset, int count, Threading.CancellationToken cancellationToken)
+            {
+                return m_target.WriteAsync(buffer, offset, count).ContinueWith(
+                    _ => UpdateCrc32(buffer, offset, count), 
+                    Threading.Tasks.TaskContinuationOptions.OnlyOnRanToCompletion
+                );
+            }
+
+            /// <summary>
+            /// Updates the crc32 value.
+            /// </summary>
+            /// <param name="buffer">The buffer with data.</param>
+            /// <param name="offset">The offset into the buffer.</param>
+            /// <param name="count">The number of bytes to write.</param>
+            private void UpdateCrc32(byte[] buffer, int offset, int count)
+            {
+                m_written += count;
+                for (uint i = (uint)offset; i < count + offset; i++)
+                    Crc32 = ZipStorer.CrcTable[(Crc32 ^ buffer[i]) & 0xFF] ^ (Crc32 >> 8);
+            }
+
+            /// <summary>
+            /// Disposes this instance and calls the completion method
+            /// </summary>
+            /// <param name="disposing">If set to <c>true</c> this call is from Dispose, otherwise it is from the destructor.</param>
+            protected override void Dispose(bool disposing)
+            {
+                if (!m_isDisposed)
+                {
+                    Flush();
+                    m_isDisposed = true;
+                    Crc32 ^= 0xffffffff;
+                    if (m_complete != null)
+                        m_complete(this);
+
+                    base.Dispose(disposing);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Represents a stream that is a part of the underlying stream
+        /// </summary>
+        private class OffsetViewStream : Stream
+        {
+            /// <summary>
+            /// The offset into the source stream
+            /// </summary>
+            private readonly long m_offset;
+            /// <summary>
+            /// The length of this stream
+            /// </summary>
+            private readonly long m_length;
+            /// <summary>
+            /// The stream that provides the data
+            /// </summary>
+            private readonly Stream m_source;
+            /// <summary>
+            /// A flag indicating if the source stream is closed automatically
+            /// </summary>
+            private readonly bool m_close;
+            /// <summary>
+            /// The current position in the stream
+            /// </summary>
+            private long m_position;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="T:System.IO.Compression.ZipStorer.OffsetViewStream"/> class.
+            /// </summary>
+            /// <param name="source">The stream that provides the data.</param>
+            /// <param name="offset">The offset into the source stream.</param>
+            /// <param name="length">The length of the source stream.</param>
+            /// <param name="closeStream">If set to <c>true</c> close the source stream when disposing this instance.</param>
+            public OffsetViewStream(Stream source, long offset, long length, bool closeStream)
+            {
+                m_source = source;
+                m_offset = offset;
+                m_length = length;
+                m_close = closeStream;
+                if (source.CanSeek)
+                    source.Position = offset;
+            }
+
+            /// <summary>
+            /// Gets a value indicating whether this
+            /// <see cref="T:System.IO.Compression.ZipStorer.Crc32CalculatingStream"/> can be read.
+            /// </summary>
+            public override bool CanRead { get { return true; } }
+            /// <summary>
+            /// Gets a value indicating whether this
+            /// <see cref="T:System.IO.Compression.ZipStorer.Crc32CalculatingStream"/> can seek.
+            /// </summary>
+            public override bool CanSeek { get { return m_source.CanSeek; } }
+            /// <summary>
+            /// Gets a value indicating whether this
+            /// <see cref="T:System.IO.Compression.ZipStorer.Crc32CalculatingStream"/> can be written.
+            /// </summary>
+            public override bool CanWrite { get { return false; } }
+            /// <summary>
+            /// Gets the length of the stream.
+            /// </summary>
+            public override long Length { get { return m_length; } }
+            /// <summary>
+            /// Gets the position in the stream.
+            /// </summary>
+            public override long Position
+            {
+                get { return m_position; }
+                set 
+                {
+                    if (value < 0 || value > m_length)
+                        throw new ArgumentOutOfRangeException(nameof(value));
+                    
+                    m_position = m_source.Position = m_offset + value;
+                }
+            }
+
+            /// <summary>
+            /// Flushes the current data
+            /// </summary>
+            public override void Flush() { }
+
+            /// <summary>
+            /// Read data from the stream into the buffer.
+            /// </summary>
+            /// <returns>The number of bytes read.</returns>
+            /// <param name="buffer">The buffer to read into.</param>
+            /// <param name="offset">The offset into the buffer where writing starts.</param>
+            /// <param name="count">The maximum number of bytes to read.</param>
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                if (count < 0)
+                    throw new ArgumentOutOfRangeException(nameof(count));
+                
+                count = (int)Math.Min(m_length - Position, count);
+                var res = m_source.Read(buffer, offset, count);
+                m_position += res;
+
+                return res;
+            }
+
+            /// <summary>
+            /// Read data from the stream into the buffer.
+            /// </summary>
+            /// <returns>An awaitable task with the number of bytes read.</returns>
+            /// <param name="buffer">The buffer to read into.</param>
+            /// <param name="offset">The offset into the buffer where writing starts.</param>
+            /// <param name="count">The maximum number of bytes to read.</param>
+            /// <param name="cancellationToken">The cancellation token.</param>
+            public override Threading.Tasks.Task<int> ReadAsync(byte[] buffer, int offset, int count, Threading.CancellationToken cancellationToken)
+            {
+                if (count > 0)
+                    throw new ArgumentOutOfRangeException(nameof(count));
+
+                count = (int)Math.Min(m_length - Position, count);
+                return m_source.ReadAsync(buffer, offset, count, cancellationToken).ContinueWith(t => {
+                    m_position += t.Result;
+                    return t.Result;
+                }, Threading.Tasks.TaskContinuationOptions.OnlyOnRanToCompletion);
+            }
+
+            /// <summary>
+            /// Seeks the stream to the new position
+            /// </summary>
+            /// <returns>The new position.</returns>
+            /// <param name="offset">The number of bytes to move from the origin.</param>
+            /// <param name="origin">The origin of the seek operation.</param>
+            public override long Seek(long offset, SeekOrigin origin)
+            {
+                long newpos;
+                if (origin == SeekOrigin.Begin)
+                    newpos = offset;
+                else if (origin == SeekOrigin.Current)
+                    newpos = Position + offset;
+                else if (origin == SeekOrigin.End)
+                    newpos = m_length + offset;
+                else
+                    throw new ArgumentOutOfRangeException(nameof(origin));
+
+                newpos = Math.Min(Math.Max(0, newpos), m_length - 1);
+                return Position = newpos;
+            }
+
+            /// <summary>
+            /// Unsupported, throws <see cref="NotSupportedException"/>.
+            /// </summary>
+            /// <param name="value">Unused value.</param>
+            public override void SetLength(long value)
+            { throw new NotSupportedException(); }
+
+            /// <summary>
+            /// Unsupported, throws <see cref="NotSupportedException"/>.
+            /// </summary>
+            /// <param name="buffer">Unused buffer.</param>
+            /// <param name="offset">Unused offset.</param>
+            /// <param name="count">Unused count.</param>
+            public override void Write(byte[] buffer, int offset, int count)
+            { throw new NotSupportedException(); }
+
+            /// <summary>
+            /// Disposes all resources
+            /// </summary>
+            /// <param name="disposing">If set to <c>true</c> this is called from Dispose, otherwise the call is from the destructor.</param>
+            protected override void Dispose(bool disposing)
+            {
+                if (m_close)
+                    m_source.Dispose();
+                base.Dispose(disposing);
+            }
+        }
+
+    }
+
+}         return false;
         }
         #endregion
 
