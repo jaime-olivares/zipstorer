@@ -197,8 +197,8 @@ namespace System.IO.Compression
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not alowed");
 
-			using(var stream = new FileStream(_pathname, FileMode.Open, FileAccess.Read))
-            	AddStream(_method, _filenameInZip, stream, File.GetLastWriteTime(_pathname), _comment);
+            using(var stream = new FileStream(_pathname, FileMode.Open, FileAccess.Read))
+                AddStream(_method, _filenameInZip, stream, File.GetLastWriteTime(_pathname), _comment);
         }
         /// <summary>
         /// Add full contents of a stream into the Zip storage
