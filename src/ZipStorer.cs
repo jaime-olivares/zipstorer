@@ -639,7 +639,7 @@ namespace System.IO.Compression
                         _zfe.Crc32 = ZipStorer.CrcTable[(_zfe.Crc32 ^ buffer[i]) & 0xFF] ^ (_zfe.Crc32 >> 8);
                     }
                 }
-            } while (bytesRead == buffer.Length);
+            } while (bytesRead > 0);
             outStream.Flush();
 
             if (_zfe.Method == Compression.Deflate)
