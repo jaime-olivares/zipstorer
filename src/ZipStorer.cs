@@ -213,15 +213,6 @@ namespace System.IO.Compression
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not alowed");
 
-            long offset;
-            if (this.Files.Count==0)
-                offset = 0;
-            else
-            {
-                ZipFileEntry last = this.Files[this.Files.Count-1];
-                offset = last.HeaderOffset + last.HeaderSize;
-            }
-
             // Prepare the fileinfo
             ZipFileEntry zfe = new ZipFileEntry();
             zfe.Method = _method;
