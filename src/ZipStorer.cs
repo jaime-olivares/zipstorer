@@ -340,13 +340,15 @@ namespace System.IO.Compression
             if (Directory.Exists(_filename))
                 return true;
 
-            Stream output = new FileStream(_filename, FileMode.Create, FileAccess.Write);
-            bool result = ExtractFile(_zfe, output);
+            bool result;
+            using(var fs = new FileStream(_filename, FileMode.Create, FileAccess.Write))
+                result = ExtractFile(_zfe, output);
+                
             if (result)
-                output.Close();
-
-            File.SetCreationTime(_filename, _zfe.ModifyTime);
-            File.SetLastWriteTime(_filename, _zfe.ModifyTime);
+            {
+                File.SetCreationTime(_filename, _zfe.ModifyTime);
+                File.SetLastWriteTime(_filename, _zfe.ModifyTime);
+            }
             
             return result;
         }
