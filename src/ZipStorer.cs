@@ -4,10 +4,13 @@
 
 using System.Collections.Generic;
 using System.Text;
+#if NET45
+using System.Threading.Tasks;
+#endif
 
 namespace System.IO.Compression
 {
-    #if NETSTANDARD
+#if NETSTANDARD
     /// <summary>
     /// Extension method for covering missing Close() method in .Net Standard
     /// </summary>
@@ -19,7 +22,7 @@ namespace System.IO.Compression
             GC.SuppressFinalize(stream);
         }
     }
-    #endif
+#endif
 
     /// <summary>
     /// Unique class for compression/decompression file. Represents a Zip file.
@@ -71,14 +74,14 @@ namespace System.IO.Compression
             }
         }
 
-        #region Public fields
+#region Public fields
         /// <summary>True if UTF8 encoding for filename and comments, false if default (CP 437)</summary>
         public bool EncodeUTF8 = false;
         /// <summary>Force deflate algotithm even if it inflates the stored file. Off by default.</summary>
         public bool ForceDeflating = false;
-        #endregion
+#endregion
 
-        #region Private fields
+#region Private fields
         // List of files to store
         private List<ZipFileEntry> Files = new List<ZipFileEntry>();
         // Filename of storage file
@@ -97,9 +100,9 @@ namespace System.IO.Compression
         private static UInt32[] CrcTable = null;
         // Default filename encoder
         private static Encoding DefaultEncoding = Encoding.GetEncoding(437);
-        #endregion
+#endregion
 
-        #region Public methods
+#region Public methods
         // Static constructor. Just invoked once in order to create the CRC32 lookup table.
         static ZipStorer()
         {
@@ -404,6 +407,52 @@ namespace System.IO.Compression
                 inStream.Dispose();
             return true;
         }
+#if NET45
+        /// <summary>
+        /// Copy the contents of a stored file into an opened stream
+        /// </summary>
+        /// <param name="_zfe">Entry information of file to extract</param>
+        /// <param name="_stream">Stream to store the uncompressed data</param>
+        /// <returns>True if success, false if not.</returns>
+        /// <remarks>Unique compression methods are Store and Deflate</remarks>
+        public async Task<bool> ExtractFileAsync(ZipFileEntry _zfe, Stream _stream)
+        {
+            if (!_stream.CanWrite)
+                throw new InvalidOperationException("Stream cannot be written");
+
+            // check signature
+            byte[] signature = new byte[4];
+            this.ZipFileStream.Seek(_zfe.HeaderOffset, SeekOrigin.Begin);
+            await this.ZipFileStream.ReadAsync(signature, 0, 4).ConfigureAwait(false);
+            if (BitConverter.ToUInt32(signature, 0) != 0x04034b50)
+                return false;
+
+            // Select input stream for inflating or just reading
+            Stream inStream;
+            if (_zfe.Method == Compression.Store)
+                inStream = this.ZipFileStream;
+            else if (_zfe.Method == Compression.Deflate)
+                inStream = new DeflateStream(this.ZipFileStream, CompressionMode.Decompress, true);
+            else
+                return false;
+
+            // Buffered copy
+            byte[] buffer = new byte[16384];
+            this.ZipFileStream.Seek(_zfe.FileOffset, SeekOrigin.Begin);
+            uint bytesPending = _zfe.FileSize;
+            while (bytesPending > 0)
+            {
+                int bytesRead = await inStream.ReadAsync(buffer, 0, (int)Math.Min(bytesPending, buffer.Length)).ConfigureAwait(false);
+                await _stream.WriteAsync(buffer, 0, bytesRead).ConfigureAwait(false);
+                bytesPending -= (uint)bytesRead;
+            }
+            _stream.Flush();
+
+            if (_zfe.Method == Compression.Deflate)
+                inStream.Dispose();
+            return true;
+        }
+#endif
         /// <summary>
         /// Copy the contents of a stored file into a byte array
         /// </summary>
@@ -482,9 +531,9 @@ namespace System.IO.Compression
             }
             return true;
         }
-        #endregion
+#endregion
 
-        #region Private methods
+#region Private methods
         // Calculate the file offset by reading the corresponding local header
         private uint GetFileOffset(uint _headerOffset)
         {
@@ -772,9 +821,9 @@ namespace System.IO.Compression
 
             return false;
         }
-        #endregion
+#endregion
 
-        #region IDisposable Members
+#region IDisposable Members
         /// <summary>
         /// Closes the Zip file stream
         /// </summary>
@@ -782,6 +831,6 @@ namespace System.IO.Compression
         {
             this.Close();
         }
-        #endregion
+#endregion
     }
 }
