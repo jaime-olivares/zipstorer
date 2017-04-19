@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{69B1B1EA-F10C-4F8E-BA08-48A16B993305}</ProjectGuid>
+    <ProjectGuid>{1A30C0E0-46B7-4939-BD6B-1293B197F6B0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ZipStorer</RootNamespace>
