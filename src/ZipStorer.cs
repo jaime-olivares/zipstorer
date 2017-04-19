@@ -1,9 +1,10 @@
 // ZipStorer, by Jaime Olivares
 // Website: http://github.com/jaime-olivares/zipstorer
-// Version: 3.2.0 (January 20, 2017)
+// Version: 3.3.0 (April 19, 2017)
 
 using System.Collections.Generic;
 using System.Text;
+
 #if NET45
 using System.Threading.Tasks;
 #endif
@@ -200,8 +201,10 @@ namespace System.IO.Compression
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not alowed");
 
-            using(var stream = new FileStream(_pathname, FileMode.Open, FileAccess.Read))
+            using (var stream = new FileStream(_pathname, FileMode.Open, FileAccess.Read))
+            {
                 AddStream(_method, _filenameInZip, stream, File.GetLastWriteTime(_pathname), _comment);
+            }
         }
         /// <summary>
         /// Add full contents of a stream into the Zip storage
@@ -344,8 +347,10 @@ namespace System.IO.Compression
                 return true;
 
             bool result;
-            using(var fs = new FileStream(_filename, FileMode.Create, FileAccess.Write))
+            using(var output = new FileStream(_filename, FileMode.Create, FileAccess.Write))
+            {
                 result = ExtractFile(_zfe, output);
+            }
                 
             if (result)
             {
@@ -735,15 +740,11 @@ namespace System.IO.Compression
 
         /* CRC32 algorithm
           The 'magic number' for the CRC is 0xdebb20e3.  
-          The proper CRC pre and post conditioning
-          is used, meaning that the CRC register is
-          pre-conditioned with all ones (a starting value
-          of 0xffffffff) and the value is post-conditioned by
+          The proper CRC pre and post conditioning is used, meaning that the CRC register is
+          pre-conditioned with all ones (a starting value of 0xffffffff) and the value is post-conditioned by
           taking the one's complement of the CRC residual.
-          If bit 3 of the general purpose flag is set, this
-          field is set to zero in the local header and the correct
-          value is put in the data descriptor and in the central
-          directory.
+          If bit 3 of the general purpose flag is set, this field is set to zero in the local header and the correct
+          value is put in the data descriptor and in the central directory.
         */
         private void UpdateCrcAndSizes(ref ZipFileEntry _zfe)
         {

@@ -4,5 +4,4 @@
 **/obj
 test/.vs/*
 netstandard/obj
-**/project.lock.json
-**/*.symbols.nupkg
+**/*.nupkg

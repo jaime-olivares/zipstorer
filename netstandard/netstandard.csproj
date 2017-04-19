@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Zipstorer</Description>
+    <AssemblyTitle>ZipStorer</AssemblyTitle>
+    <VersionPrefix>3.3.0.0</VersionPrefix>
+    <Authors>Jaime Olivares</Authors>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <DefineConstants>$(DefineConstants);NETSTANDARD</DefineConstants>
+    <AssemblyName>ZipStorer</AssemblyName>
+    <PackageId>netstandard</PackageId>
+    <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\src\zipstorer.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Runtime" Version="*" />
+  </ItemGroup>
+
+</Project>
