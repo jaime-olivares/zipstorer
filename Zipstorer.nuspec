@@ -11,11 +11,12 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <tags>zip unzip compress compression</tags>
         <frameworkAssemblies>
-            <frameworkAssembly assemblyName="System.IO" targetFramework="net20, netstandard1.6" />
+            <frameworkAssembly assemblyName="System.IO" targetFramework="net20, netstandard1.6, net452" />
         </frameworkAssemblies>
     </metadata>
     <files>
-        <file src="net20/bin/Release/ZipStorer.dll" target="lib/net20"></file>
-        <file src="netstandard/bin/Release/netstandard1.6/ZipStorer.dll" target="lib/netstandard1.6"></file>
+        <file src="net20\bin\Release\ZipStorer.dll" target="lib\net20"></file>
+		<file src="net45\bin\Release\ZipStorer.dll" target="lib\net452"></file>
+        <file src="netstandard\bin\Release\netstandard1.6\ZipStorer.dll" target="lib\netstandard1.6"></file>
     </files>
 </package>
