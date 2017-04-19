@@ -197,9 +197,8 @@ namespace System.IO.Compression
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not alowed");
 
-            FileStream stream = new FileStream(_pathname, FileMode.Open, FileAccess.Read);
-            AddStream(_method, _filenameInZip, stream, File.GetLastWriteTime(_pathname), _comment);
-            stream.Close();
+            using(var stream = new FileStream(_pathname, FileMode.Open, FileAccess.Read))
+                AddStream(_method, _filenameInZip, stream, File.GetLastWriteTime(_pathname), _comment);
         }
         /// <summary>
         /// Add full contents of a stream into the Zip storage
@@ -213,15 +212,6 @@ namespace System.IO.Compression
         {
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not alowed");
-
-            long offset;
-            if (this.Files.Count==0)
-                offset = 0;
-            else
-            {
-                ZipFileEntry last = this.Files[this.Files.Count-1];
-                offset = last.HeaderOffset + last.HeaderSize;
-            }
 
             // Prepare the fileinfo
             ZipFileEntry zfe = new ZipFileEntry();
@@ -342,7 +332,7 @@ namespace System.IO.Compression
         public bool ExtractFile(ZipFileEntry _zfe, string _filename)
         {
             // Make sure the parent directory exist
-            string path = System.IO.Path.GetDirectoryName(_filename);
+            string path = Path.GetDirectoryName(_filename);
 
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
@@ -350,13 +340,15 @@ namespace System.IO.Compression
             if (Directory.Exists(_filename))
                 return true;
 
-            Stream output = new FileStream(_filename, FileMode.Create, FileAccess.Write);
-            bool result = ExtractFile(_zfe, output);
+            bool result;
+            using(var fs = new FileStream(_filename, FileMode.Create, FileAccess.Write))
+                result = ExtractFile(_zfe, output);
+                
             if (result)
-                output.Close();
-
-            File.SetCreationTime(_filename, _zfe.ModifyTime);
-            File.SetLastWriteTime(_filename, _zfe.ModifyTime);
+            {
+                File.SetCreationTime(_filename, _zfe.ModifyTime);
+                File.SetLastWriteTime(_filename, _zfe.ModifyTime);
+            }
             
             return result;
         }
@@ -441,15 +433,15 @@ namespace System.IO.Compression
 
 
             //Get full list of entries
-            List<ZipFileEntry> fullList = _zip.ReadCentralDir();
+            var fullList = _zip.ReadCentralDir();
 
             //In order to delete we need to create a copy of the zip file excluding the selected items
-            string tempZipName = Path.GetTempFileName();
-            string tempEntryName = Path.GetTempFileName();
+            var tempZipName = Path.GetTempFileName();
+            var tempEntryName = Path.GetTempFileName();
 
             try
             {
-                ZipStorer tempZip = ZipStorer.Create(tempZipName, string.Empty);
+                var tempZip = ZipStorer.Create(tempZipName, string.Empty);
 
                 foreach (ZipFileEntry zfe in fullList)
                 {
@@ -618,7 +610,7 @@ namespace System.IO.Compression
             Stream outStream;
 
             long posStart = this.ZipFileStream.Position;
-            long sourceStart = _source.Position;
+            long sourceStart = _source.CanSeek ? _source.Position : 0;
 
             if (_zfe.Method == Compression.Store)
                 outStream = this.ZipFileStream;
@@ -640,7 +632,7 @@ namespace System.IO.Compression
                         _zfe.Crc32 = ZipStorer.CrcTable[(_zfe.Crc32 ^ buffer[i]) & 0xFF] ^ (_zfe.Crc32 >> 8);
                     }
                 }
-            } while (bytesRead == buffer.Length);
+            } while (bytesRead > 0);
             outStream.Flush();
 
             if (_zfe.Method == Compression.Deflate)
