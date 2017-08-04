@@ -109,15 +109,17 @@ The current release of ZipStorer supports both files and streams for creating an
     public static bool RemoveEntries(ref ZipStorer _zip, List<zipfileentry> _zfes)  // No stream-oriented equivalent
 
     // Stream-oriented methods:
-    public static ZipStorer Create(Stream _stream, string _comment)
-    public static ZipStorer Open(Stream _stream, FileAccess _access)
+    public static ZipStorer Create(Stream _stream, string _comment, bool _leaveOpen)
+    public static ZipStorer Open(Stream _stream, FileAccess _access, bool _leaveOpen)
     public void AddStream(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment)
     public bool ExtractFile(ZipFileEntry _zfe, Stream _stream)</zipfileentry>
 
     // Async method (experimental):
     public async Task<bool> ExtractFileAsync(ZipFileEntry _zfe, Stream _stream)    
 ````
-        
+
+The new *_leaveOpen* argument will prevent the stream to be closed after completing the generation of the zip package.
+
 ## Filename encoding
 Traditionally, the ZIP format supported DOS encoding system (a.k.a. IBM Code Page 437) for filenames in header records, which is a serious limitation for using non-occidental and even some occidental characters. Since 2007, the ZIP format specification was improved to support Unicode's UTF-8 encoding system.
 

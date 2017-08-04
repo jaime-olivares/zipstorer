@@ -1,6 +1,6 @@
 // ZipStorer, by Jaime Olivares
 // Website: http://github.com/jaime-olivares/zipstorer
-// Version: 3.4.0 (April 19, 2017)
+// Version: 3.4.0 (August 4, 2017)
 
 using System.Collections.Generic;
 using System.Text;
@@ -37,7 +37,8 @@ namespace System.IO.Compression
             /// <summary>Uncompressed storage</summary> 
             Store = 0, 
             /// <summary>Deflate compression method</summary>
-            Deflate = 8 }
+            Deflate = 8 
+        }
 
         /// <summary>
         /// Represents an entry in Zip file directory
@@ -275,7 +276,7 @@ namespace System.IO.Compression
                     this.WriteEndRecord(centralSize, centralOffset);
             }
 
-            if (this.ZipFileStream != null && !leaveOpen)
+            if (this.ZipFileStream != null && !this.leaveOpen)
             {
                 this.ZipFileStream.Flush();
                 this.ZipFileStream.Dispose();
