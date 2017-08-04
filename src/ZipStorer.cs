@@ -97,6 +97,8 @@ namespace System.IO.Compression
         private ushort ExistingFiles = 0;
         // File access for Open method
         private FileAccess Access;
+        // leave the stream open after the ZipStorer object is disposed
+        private bool leaveOpen;
         // Static CRC32 Table
         private static UInt32[] CrcTable = null;
         // Default filename encoder
@@ -143,14 +145,15 @@ namespace System.IO.Compression
         /// </summary>
         /// <param name="_stream"></param>
         /// <param name="_comment"></param>
+        /// <param name="_leaveOpen">true to leave the stream open after the ZipStorer object is disposed; otherwise, false (default).</param>
         /// <returns>A valid ZipStorer object</returns>
-        public static ZipStorer Create(Stream _stream, string _comment)
+        public static ZipStorer Create(Stream _stream, string _comment,bool _leaveOpen=false)
         {
             ZipStorer zip = new ZipStorer();
             zip.Comment = _comment;
             zip.ZipFileStream = _stream;
             zip.Access = FileAccess.Write;
-
+            zip.leaveOpen = _leaveOpen;
             return zip;
         }
         /// <summary>
@@ -173,8 +176,9 @@ namespace System.IO.Compression
         /// </summary>
         /// <param name="_stream">Already opened stream with zip contents</param>
         /// <param name="_access">File access mode for stream operations</param>
+        /// <param name="_leaveOpen">true to leave the stream open after the ZipStorer object is disposed; otherwise, false (default).</param>
         /// <returns>A valid ZipStorer object</returns>
-        public static ZipStorer Open(Stream _stream, FileAccess _access)
+        public static ZipStorer Open(Stream _stream, FileAccess _access,bool _leaveOpen=false)
         {
             if (!_stream.CanSeek && _access != FileAccess.Read)
                 throw new InvalidOperationException("Stream cannot seek");
@@ -183,6 +187,7 @@ namespace System.IO.Compression
             //zip.FileName = _filename;
             zip.ZipFileStream = _stream;
             zip.Access = _access;
+            zip.leaveOpen = _leaveOpen;
 
             if (zip.ReadFileInfo())
                 return zip;
@@ -270,7 +275,7 @@ namespace System.IO.Compression
                     this.WriteEndRecord(centralSize, centralOffset);
             }
 
-            if (this.ZipFileStream != null)
+            if (this.ZipFileStream != null &&!leaveOpen)
             {
                 this.ZipFileStream.Flush();
                 this.ZipFileStream.Dispose();
