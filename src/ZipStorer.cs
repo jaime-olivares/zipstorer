@@ -1,6 +1,6 @@
 // ZipStorer, by Jaime Olivares
 // Website: http://github.com/jaime-olivares/zipstorer
-// Version: 3.3.0 (April 19, 2017)
+// Version: 3.4.0 (April 19, 2017)
 
 using System.Collections.Generic;
 using System.Text;
@@ -147,7 +147,7 @@ namespace System.IO.Compression
         /// <param name="_comment"></param>
         /// <param name="_leaveOpen">true to leave the stream open after the ZipStorer object is disposed; otherwise, false (default).</param>
         /// <returns>A valid ZipStorer object</returns>
-        public static ZipStorer Create(Stream _stream, string _comment,bool _leaveOpen=false)
+        public static ZipStorer Create(Stream _stream, string _comment, bool _leaveOpen=false)
         {
             ZipStorer zip = new ZipStorer();
             zip.Comment = _comment;
@@ -178,7 +178,7 @@ namespace System.IO.Compression
         /// <param name="_access">File access mode for stream operations</param>
         /// <param name="_leaveOpen">true to leave the stream open after the ZipStorer object is disposed; otherwise, false (default).</param>
         /// <returns>A valid ZipStorer object</returns>
-        public static ZipStorer Open(Stream _stream, FileAccess _access,bool _leaveOpen=false)
+        public static ZipStorer Open(Stream _stream, FileAccess _access, bool _leaveOpen = false)
         {
             if (!_stream.CanSeek && _access != FileAccess.Read)
                 throw new InvalidOperationException("Stream cannot seek");
@@ -275,7 +275,7 @@ namespace System.IO.Compression
                     this.WriteEndRecord(centralSize, centralOffset);
             }
 
-            if (this.ZipFileStream != null &&!leaveOpen)
+            if (this.ZipFileStream != null && !leaveOpen)
             {
                 this.ZipFileStream.Flush();
                 this.ZipFileStream.Dispose();
