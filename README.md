@@ -65,7 +65,7 @@ For extracting a file, the zip directory shall be read first, by using the *Read
 
 ````csharp
 // Open an existing zip file for reading
-ZipStorer zip = ZipStorer.Open(@"c:\data\sample.zip", FileAccesss.Read);
+ZipStorer zip = ZipStorer.Open(@"c:\data\sample.zip", FileAccess.Read);
 
 // Read the central directory collection
 List<ZipStorer.ZipFileEntry> dir = zip.ReadCentralDir();
