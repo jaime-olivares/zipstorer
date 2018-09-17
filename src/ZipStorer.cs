@@ -192,7 +192,11 @@ namespace System.IO.Compression
 
             if (zip.ReadFileInfo())
                 return zip;
-
+            
+            /* prevent files/streams to be opened unused*/
+            if(!_leaveOpen)
+                Close();
+            
             throw new System.IO.InvalidDataException();
         }
         /// <summary>
