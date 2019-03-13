@@ -195,7 +195,7 @@ namespace System.IO.Compression
             
             /* prevent files/streams to be opened unused*/
             if(!_leaveOpen)
-                Close();
+                zip.Close();
             
             throw new System.IO.InvalidDataException();
         }
