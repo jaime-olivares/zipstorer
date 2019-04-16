@@ -1,7 +1,6 @@
 ' ZipStorer, by Jaime Olivares
 ' Website: http://github.com/jaime-olivares/zipstorer
-' Version: 2.35 (March 14, 2010)
-' WARNING: This source code is based in an old C# code and will not include recent modifications
+' Version: 3.4 (April 16, 2019)
 
 Imports System.Collections.Generic
 Imports System.Text
@@ -81,6 +80,8 @@ Public Class ZipStorer
   Private ExistingFiles As UShort = 0
   ' File access for Open method
   Private Access As FileAccess
+  ' Leave the stream open after the ZipStorer object is disposed
+  Private leaveOpen As Boolean					
   ' Static CRC32 Table
   Private Shared CrcTable As UInt32() = Nothing
   ' Default filename encoder
@@ -110,6 +111,7 @@ Public Class ZipStorer
   ' </summary>
   ' <param name="_filename">Full path of Zip file to create</param>
   ' <param name="_comment">General comment for Zip file</param>
+  ' <param name="_leaveOpen">true to leave the stream open after the ZipStorer object is disposed; otherwise, false (default).</param>
   ' <returns>A valid ZipStorer object</returns>
   Public Shared Function Create(ByVal _filename As String, ByVal _comment As String) As ZipStorer
     Dim stream As Stream = New FileStream(_filename, FileMode.Create, FileAccess.ReadWrite)
@@ -127,12 +129,13 @@ Public Class ZipStorer
   ' <param name="_stream"></param>
   ' <param name="_comment"></param>
   ' <returns>A valid ZipStorer object</returns>
-  Public Shared Function Create(ByVal _stream As Stream, ByVal _comment As String) As ZipStorer
+  Public Shared Function Create(ByVal _stream As Stream, ByVal _comment As String, Optional ByVal _leaveOpen As Boolean = False) As ZipStorer
     Dim zip As New ZipStorer()
 
     zip.Comment = _comment
     zip.ZipFileStream = _stream
     zip.Access = FileAccess.Write
+    zip.leaveOpen = _leaveOpen								  
 
     Return zip
   End Function
@@ -158,15 +161,18 @@ Public Class ZipStorer
   ' <param name="_stream">Already opened stream with zip contents</param>
   ' <param name="_access">File access mode for stream operations</param>
   ' <returns>A valid ZipStorer object</returns>
-  Public Shared Function Open(ByVal _stream As Stream, ByVal _access As FileAccess) As ZipStorer
+  Public Shared Function Open(ByVal _stream As Stream, ByVal _access As FileAccess, Optional ByVal _leaveOpen As Boolean = False) As ZipStorer
     If Not _stream.CanSeek AndAlso _access <> FileAccess.Read Then Throw New InvalidOperationException("Stream cannot seek")
 
     Dim zip As New ZipStorer()
     'zip.FileName = _filename
     zip.ZipFileStream = _stream
     zip.Access = _access
+	zip.leaveOpen = _leaveOpen							  
 
     If zip.ReadFileInfo() Then Return zip
+
+	If (Not _leaveOpen) Then zip.Close()
 
     Throw New System.IO.InvalidDataException()
   End Function
@@ -185,6 +191,47 @@ Public Class ZipStorer
     AddStream(_method, _filenameInZip, stream, File.GetLastWriteTime(_pathname), _comment)
     stream.Close()
   End Sub
+
+    ''' <summary>
+    ''' Add full contents of a directory into the Zip storage
+    ''' </summary>
+    ''' <param name="_method">Compression method</param>
+    ''' <param name="_pathname">Full path of directory to add to Zip storage</param>
+    ''' <param name="_pathnameInZip">Path name as desired in Zip directory</param>
+    ''' <param name="_comment">Comment for stored directory</param>
+    Public Sub AddDirectory(ByVal _method As Compression, ByVal _pathname As String, ByVal _pathnameInZip As String, ByVal _comment As String)
+        If Access = FileAccess.Read Then
+            Throw New InvalidOperationException("Writing is not allowed")
+        End If
+
+        Dim foldername As String
+        Dim pos As Integer = _pathname.LastIndexOf(Path.DirectorySeparatorChar)
+        If pos >= 0 Then
+            foldername = _pathname.Remove(0, pos + 1)
+        Else
+            foldername = _pathname
+        End If
+
+        If _pathnameInZip IsNot Nothing AndAlso _pathnameInZip <> "" Then
+            foldername = _pathnameInZip & foldername
+        End If
+
+        If Not foldername.EndsWith("/") Then
+            foldername = foldername & "/"
+        End If
+
+        ' Process the list of files found in the directory.
+        Dim fileEntries As String() = Directory.GetFiles(_pathname)
+        For Each fileName As String In fileEntries
+            AddFile(_method, fileName, foldername & Path.GetFileName(fileName), "")
+        Next
+
+        ' Recurse into subdirectories of this directory.
+        Dim subdirectoryEntries As String() = Directory.GetDirectories(_pathname)
+        For Each subdirectory As String In subdirectoryEntries
+            AddDirectory(_method, subdirectory, foldername, "")
+        Next
+    End Sub
 
   ' <summary>
   ' Add full contents of a stream into the Zip storage
@@ -254,7 +301,7 @@ Public Class ZipStorer
       End If
     End If
 
-    If Me.ZipFileStream IsNot Nothing Then
+    If ((Me.ZipFileStream IsNot Nothing) And (Not Me.leaveOpen)) Then
       Me.ZipFileStream.Flush()
       Me.ZipFileStream.Dispose()
       Me.ZipFileStream = Nothing
@@ -365,9 +412,7 @@ Public Class ZipStorer
     Me.ZipFileStream.Seek(_zfe.FileOffset, SeekOrigin.Begin)
     Dim bytesPending As UInteger = _zfe.FileSize
     While bytesPending > 0
-      Dim bytesRead As Integer = inStream.Read(buffer, 0, CType(Math.Min(bytesPending, buffer.Length), 
-
-Integer))
+      Dim bytesRead As Integer = inStream.Read(buffer, 0, CType(Math.Min(bytesPending, buffer.Length), Integer))
       _stream.Write(buffer, 0, bytesRead)
       bytesPending -= CType(bytesRead, UInteger)
     End While
@@ -583,18 +628,20 @@ Integer))
   '        11-15 Hour (0–23 on a 24-hour clock) 
 
   Private Function DateTimeToDosTime(ByVal _dt As DateTime) As UInteger
-    Return CType((_dt.Second / 2) Or (_dt.Minute << 5) Or (_dt.Hour << 11) Or
-                 (_dt.Day << 16) Or (_dt.Month << 21) Or ((_dt.Year - 1980) << 25), UInteger)
+    Return CType((_dt.Second / 2) Or (_dt.Minute << 5) Or (_dt.Hour << 11) Or (_dt.Day << 16) Or (_dt.Month << 21) Or ((_dt.Year - 1980) << 25), UInteger)
   End Function
 
   Private Function DosTimeToDateTime(ByVal _dt As UInteger) As DateTime
-    Return New DateTime(
-        CType(_dt >> 25, Integer) + 1980,
-        CType(_dt >> 21, Integer) And 15,
-        CType(_dt >> 16, Integer) And 31,
-        CType(_dt >> 11, Integer) And 31,
-        CType(_dt >> 5, Integer) And 63,
-        CType(_dt And 31, Integer) * 2)
+        Dim year As Integer = CType(_dt >> 25, Integer) + 1980
+        Dim month As Integer = CType(_dt >> 21, Integer) And 15
+        Dim day As Integer = CType(_dt >> 16, Integer) And 31
+        Dim hours As Integer = CType(_dt >> 11, Integer) And 31
+        Dim minutes As Integer = CType(_dt >> 5, Integer) And 63
+        Dim seconds As Integer = CType(_dt And 31, Integer) * 2
+
+        If ((month = 0) Or (day = 0)) Then Return DateTime.Now
+
+        Return New DateTime(year, month, day, hours, minutes, seconds)									 
   End Function
 
   '     CRC32 algorithm
