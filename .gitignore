@@ -2,6 +2,6 @@
 .suo
 **/bin
 **/obj
-test/.vs/*
-netstandard/obj
 **/*.nupkg
+test/sample1.zip
+test/.vs/*
