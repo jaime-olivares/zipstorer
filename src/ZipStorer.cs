@@ -26,7 +26,7 @@ namespace System.IO.Compression
         /// <summary>
         /// Represents an entry in Zip file directory
         /// </summary>
-        public struct ZipFileEntry
+        public class ZipFileEntry
         {
             /// <summary>Compression method</summary>
             public Compression Method; 
@@ -78,7 +78,7 @@ namespace System.IO.Compression
         // Stream object of storage file
         private Stream ZipFileStream;
         // General comment
-        private string Comment = "";
+        private string Comment = string.Empty;
         // Central dir image
         private byte[] CentralDirImage = null;
         // Existing files in zip
@@ -118,12 +118,12 @@ namespace System.IO.Compression
         /// <param name="_filename">Full path of Zip file to create</param>
         /// <param name="_comment">General comment for Zip file</param>
         /// <returns>A valid ZipStorer object</returns>
-        public static ZipStorer Create(string _filename, string _comment)
+        public static ZipStorer Create(string _filename, string _comment = null)
         {
             Stream stream = new FileStream(_filename, FileMode.Create, FileAccess.ReadWrite);
 
             ZipStorer zip = Create(stream, _comment);
-            zip.Comment = _comment;
+            zip.Comment = _comment ?? string.Empty;
             zip.FileName = _filename;
 
             return zip;
@@ -135,10 +135,10 @@ namespace System.IO.Compression
         /// <param name="_comment"></param>
         /// <param name="_leaveOpen">true to leave the stream open after the ZipStorer object is disposed; otherwise, false (default).</param>
         /// <returns>A valid ZipStorer object</returns>
-        public static ZipStorer Create(Stream _stream, string _comment, bool _leaveOpen=false)
+        public static ZipStorer Create(Stream _stream, string _comment = null, bool _leaveOpen = false)
         {
             ZipStorer zip = new ZipStorer();
-            zip.Comment = _comment;
+            zip.Comment = _comment ?? string.Empty;
             zip.ZipFileStream = _stream;
             zip.Access = FileAccess.Write;
             zip.leaveOpen = _leaveOpen;
@@ -193,21 +193,21 @@ namespace System.IO.Compression
         /// <param name="_pathname">Full path of file to add to Zip storage</param>
         /// <param name="_filenameInZip">Filename and path as desired in Zip directory</param>
         /// <param name="_comment">Comment for stored file</param>        
-        public void AddFile(Compression _method, string _pathname, string _filenameInZip, string _comment)
+        public ZipFileEntry AddFile(Compression _method, string _pathname, string _filenameInZip, string _comment = null)
         {
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not alowed");
 
             using (var stream = new FileStream(_pathname, FileMode.Open, FileAccess.Read))
             {
-                AddStream(_method, _filenameInZip, stream, File.GetLastWriteTime(_pathname), _comment);
+                return AddStream(_method, _filenameInZip, stream, File.GetLastWriteTime(_pathname), _comment);
             }
         }
         /// <summary>
         /// Add full contents of a stream into the Zip storage
         /// </summary>
         /// <remarks>Same parameters and return value as AddStreamAsync()</remarks>
-        public ZipFileEntry AddStream(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment)
+        public ZipFileEntry AddStream(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment = null)
         {
             return Task.Run(() => AddStreamAsync(_method, _filenameInZip, _source, _modTime, _comment)).Result;
         }
@@ -219,7 +219,7 @@ namespace System.IO.Compression
         /// <param name="_source">Stream object containing the data to store in Zip</param>
         /// <param name="_modTime">Modification time of the data to store</param>
         /// <param name="_comment">Comment for stored file</param>
-        public async Task<ZipFileEntry> AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment)
+        public async Task<ZipFileEntry> AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment = null)
         {
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not alowed");
@@ -229,7 +229,7 @@ namespace System.IO.Compression
             zfe.Method = _method;
             zfe.EncodeUTF8 = this.EncodeUTF8;
             zfe.FilenameInZip = NormalizedFilename(_filenameInZip);
-            zfe.Comment = _comment ?? "";
+            zfe.Comment = _comment ?? string.Empty;
 
             // Even though we write the header now, it will have to be rewritten, since we don't know compressed size or crc.
             zfe.Crc32 = 0;  // to be updated later
@@ -258,7 +258,7 @@ namespace System.IO.Compression
         /// <param name="_pathname">Full path of directory to add to Zip storage</param>
         /// <param name="_pathnameInZip">Path name as desired in Zip directory</param>
         /// <param name="_comment">Comment for stored directory</param>
-        public void AddDirectory(Compression _method, string _pathname, string _pathnameInZip, string _comment)
+        public void AddDirectory(Compression _method, string _pathname, string _pathnameInZip, string _comment = null)
         {
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not allowed");
@@ -702,7 +702,7 @@ namespace System.IO.Compression
                 totalRead += (uint)bytesRead;
                 if (bytesRead > 0)
                 {
-                    outStream.Write(buffer, 0, bytesRead);
+                    await outStream.WriteAsync(buffer, 0, bytesRead);
 
                     for (uint i = 0; i < bytesRead; i++)
                     {
