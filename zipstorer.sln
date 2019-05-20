@@ -2,11 +2,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.10
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zipstorer", "net20\zipstorer.csproj", "{69B1B1EA-F10C-4F8E-BA08-48A16B993305}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zipstorer", "net45\zipstorer.csproj", "{1A30C0E0-46B7-4939-BD6B-1293B197F6B0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "netstandard", "netstandard\netstandard.csproj", "{9784E5E4-C509-40E5-B61F-E08256A669C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "netstandard", "netstandard20\netstandard.csproj", "{9784E5E4-C509-40E5-B61F-E08256A669C9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "demo", "demo\demo.csproj", "{C7BEF132-0048-4FDF-BC1E-C776DE0983AE}"
 EndProject
@@ -20,18 +18,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Debug|x64.Build.0 = Debug|Any CPU
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Debug|x86.Build.0 = Debug|Any CPU
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Release|Any CPU.Build.0 = Release|Any CPU
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Release|x64.ActiveCfg = Release|Any CPU
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Release|x64.Build.0 = Release|Any CPU
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Release|x86.ActiveCfg = Release|Any CPU
-		{69B1B1EA-F10C-4F8E-BA08-48A16B993305}.Release|x86.Build.0 = Release|Any CPU
 		{1A30C0E0-46B7-4939-BD6B-1293B197F6B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1A30C0E0-46B7-4939-BD6B-1293B197F6B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A30C0E0-46B7-4939-BD6B-1293B197F6B0}.Debug|x64.ActiveCfg = Debug|Any CPU

@@ -114,8 +114,9 @@ The current release of ZipStorer supports both files and streams for creating an
     public void AddStream(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment)
     public bool ExtractFile(ZipFileEntry _zfe, Stream _stream)</zipfileentry>
 
-    // Async method (experimental):
-    public async Task<bool> ExtractFileAsync(ZipFileEntry _zfe, Stream _stream)    
+    // Async methods:
+    public void AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment)
+    public async Task<bool> ExtractFileAsync(ZipFileEntry _zfe, Stream _stream)
 ````
 
 The new *_leaveOpen* argument will prevent the stream to be closed after completing the generation of the zip package.
@@ -126,7 +127,7 @@ Traditionally, the ZIP format supported DOS encoding system (a.k.a. IBM Code Pag
 ZipStorer class detects UTF-8 encoding by reading the proper flag in each file's header information. For enforcing filenames to be encoded with UTF-8 system, set the *EncodeUTF8* member of ZipStorer class to true. All new filenames added will be encoded with UTF8. Notice this doesn't affect stored file contents at all. Also be aware that Windows Explorer's embedded Zip format facility does not recognize well the UTF-8 encoding system, as WinZip or WinRAR do.
 
 ## .Net Standard support
-Now ZipStorer supports .Net Standard 1.6 and hence a broad range of platforms. 
+Now ZipStorer supports .Net Standard 2.0+ and hence a broad range of platforms. 
 
 If developing with Visual Studio Code, the `csproj` file must reference the [nuget package](https://www.nuget.org/packages/ZipStorer/):
 ````xml
@@ -142,7 +143,7 @@ ZipStorer has the following advantages:
 * No external libraries, no extra DLLs in application deployments
 * No Interop calls, increments portability to Mono and other non-Windows platforms
 * Can also be implemented with Mono, .NET Compact Framework and .Net Standard
-* Async method for extracting files (experimental)
+* Async methods for storing and extracting files
 * Fast storing and extracting, because the code is simple and short
 * UTF8 Encoding support and ePUB compatibility
-* Available as a [nuget package](https://www.nuget.org/packages/ZipStorer/)
+* Also available as a [nuget package](https://www.nuget.org/packages/ZipStorer/)

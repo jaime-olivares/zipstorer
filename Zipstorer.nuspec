@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>ZipStorer</id>
-        <version>3.4.0</version>
+        <version>3.5.0</version>
         <authors>jaime-olivares</authors>
         <description>A Pure C# class to store files in Zip</description>
         <language>en-US</language>
@@ -15,8 +15,7 @@
         </frameworkAssemblies>
     </metadata>
     <files>
-        <file src="net20\bin\Release\ZipStorer.dll" target="lib\net20"></file>
 		<file src="net45\bin\Release\ZipStorer.dll" target="lib\net452"></file>
-        <file src="netstandard\bin\Release\netstandard1.6\ZipStorer.dll" target="lib\netstandard1.6"></file>
+        <file src="netstandard20\bin\Release\netstandard2.0\ZipStorer.dll" target="lib\netstandard2.0"></file>
     </files>
 </package>
