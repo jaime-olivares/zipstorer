@@ -23,8 +23,8 @@ steps:
   displayName: Build .net framework 4.5
   inputs:
     solution: 'net45/Zipstorer.csproj'
-    msbuildArchitecture: 'x64'
-    platform: 'Any CPU'
+#    msbuildArchitecture: 'x64'
+    platform: 'AnyCPU'
     configuration: '$(BuildConfiguration)'
     restoreNugetPackages: true
 
