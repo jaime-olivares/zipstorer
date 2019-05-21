@@ -48,13 +48,20 @@ steps:
     versioningScheme: 'off'
 
 - task: NuGetCommand@2
+  displayName: Prepare nuget package
   inputs:
     command: 'pack'
     feedsToUse: 'select'
     packagesToPack: '**/Zipstorer.nuspec'
     versioningScheme: 'off'
 
+- task: ManualIntervention@8
+  inputs:
+    instructions: 'Publish to nuget.org?'
+    emailRecipients: 'jaime_olivares@hotmail.com'
+
 - task: NuGetCommand@2
+  displayName: Publish nuget package
   inputs:
     command: 'push'
     feedsToUse: 'select'
