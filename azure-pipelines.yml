@@ -19,14 +19,14 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: '/netstandard20/netstandard.csproj'
+    projects: '**/netstandard.csproj'
     feedsToUse: 'select'
     versioningScheme: 'off'
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
-    projects: '/test/test.csproj'
+    projects: '**/test.csproj'
     testRunTitle: '.net standard test'
     feedsToUse: 'select'
     versioningScheme: 'off'
