@@ -117,7 +117,7 @@ The current release of ZipStorer supports both files and streams for creating an
 
     // Async methods:
     public ZipFileEntry AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment)
-    public async Task<bool> ExtractFileAsync(ZipFileEntry _zfe, Stream _stream)
+    public async Task<bool> ExtractFileAsync(ZipFileEntry _zfe, Stream _stream);
 ````
 
 The *_leaveOpen* argument will prevent the stream to be closed after completing the generation of the zip package.

@@ -9,6 +9,8 @@ namespace Test
     [TestClass]
     public class UnitTestRead
     {
+        private string sampleFile = "sample.zip";
+
         private readonly DateTime baseDate = new DateTime(2019,1,1);
 
         [TestInitialize]
@@ -20,7 +22,7 @@ namespace Test
         [TestMethod]
         public void OpenRead_Test()
         {
-            using (ZipStorer zip = ZipStorer.Open("sample.zip", FileAccess.Read))
+            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
             {                
             }
         }
@@ -28,7 +30,7 @@ namespace Test
         [TestMethod]
         public void ReadCentralDir_Test()
         {
-            using (ZipStorer zip = ZipStorer.Open("sample.zip", FileAccess.Read))
+            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
             {
                 var dir = zip.ReadCentralDir();
                 Assert.AreEqual(dir.Count, 10);
@@ -38,7 +40,7 @@ namespace Test
         [TestMethod]
         public void ExtractFolder_Test()
         {
-            using (ZipStorer zip = ZipStorer.Open("sample.zip", FileAccess.Read))
+            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
             {
                 var dir = zip.ReadCentralDir();
                 Assert.IsFalse(dir.Count == 0);
@@ -50,7 +52,7 @@ namespace Test
         [TestMethod]
         public void ExtractFile_Test()
         {
-            using (ZipStorer zip = ZipStorer.Open("sample.zip", FileAccess.Read))
+            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
             {
                 var dir = zip.ReadCentralDir();
                 Assert.IsFalse(dir.Count == 0);
@@ -62,7 +64,7 @@ namespace Test
         [TestMethod]
         public void ReadModifyTime_Test()
         {
-            using (ZipStorer zip = ZipStorer.Open("sample.zip", FileAccess.Read))
+            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
             {
                 var dir = zip.ReadCentralDir();
                 Assert.IsTrue(dir[0].ModifyTime > baseDate);
@@ -72,7 +74,7 @@ namespace Test
         [TestMethod]
         public void ReadAccessTime_Test()
         {
-            using (ZipStorer zip = ZipStorer.Open("sample.zip", FileAccess.Read))
+            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
             {
                 var dir = zip.ReadCentralDir();
                 Assert.IsTrue(dir[0].AccessTime > DateTime.Today);
@@ -82,7 +84,7 @@ namespace Test
         [TestMethod]
         public void ReadCreationTime_Test()
         {
-            using (ZipStorer zip = ZipStorer.Open("sample.zip", FileAccess.Read))
+            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
             {
                 var dir = zip.ReadCentralDir();
                 Assert.IsTrue(dir[0].CreationTime > baseDate);

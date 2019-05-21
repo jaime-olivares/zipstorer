@@ -22,7 +22,7 @@ steps:
 - task: MSBuild@1
   displayName: Build .net framework 4.5
   inputs:
-    solution: 'net45/Zipstorer.csproj'
+    solution: '**/net45.csproj'
 #    msbuildArchitecture: 'x64'
     platform: 'AnyCPU'
     configuration: '$(BuildConfiguration)'
@@ -36,4 +36,11 @@ steps:
     configuration: '$(BuildConfiguration)'
     testRunTitle: '.net standard test'
     feedsToUse: 'select'
+    versioningScheme: 'off'
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'pack'
+    feedsToUse: 'select'
+    packagesToPack: '**/Zipstorer.nuspec'
     versioningScheme: 'off'

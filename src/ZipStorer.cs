@@ -798,8 +798,8 @@ namespace System.IO.Compression
             int minutes = (int)(_dt >> 5) & 63;
             int seconds = (int)(_dt & 31) * 2;
 
-            if (month==0 || day == 0)
-                return null;
+            if (month==0 || day == 0 || year >= 2107)
+                return DateTime.Now;
 
             return new DateTime(year, month, day, hours, minutes, seconds);
         }
