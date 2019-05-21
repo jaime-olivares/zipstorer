@@ -58,7 +58,7 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy Artifacts'
   inputs:
-    SourceFolder: '$(Agent.BuildDirectory'
+    SourceFolder: '$(Agent.BuildDirectory)'
     Contents: '**/*.nupkg'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
     CleanTargetFolder: true
