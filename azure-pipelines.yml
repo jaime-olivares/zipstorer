@@ -47,7 +47,7 @@ steps:
     feedsToUse: 'select'
     versioningScheme: 'off'
 
-- task: NuGetCommand@
+- task: NuGetCommand@2
   displayName: Prepare nuget package
   inputs:
     command: 'pack'
@@ -56,7 +56,7 @@ steps:
     versioningScheme: 'off'
 
 - task: CopyFiles@2
-  displayName: 'Copy Artifacts'
+  displayName: Copy Artifacts
   enabled: 'false'
   inputs:
     SourceFolder: '$(Agent.BuildDirectory)'
@@ -67,6 +67,7 @@ steps:
     flattenFolders: true
 
 - task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'drop'
