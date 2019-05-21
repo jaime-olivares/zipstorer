@@ -1,7 +1,4 @@
-# .NET Desktop
-# Build and run tests for .NET Desktop or Windows classic desktop solutions.
-# Add steps that publish symbols, save build artifacts, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+# Build for both .net standard 2.0 and .net framework 4.5 + nuget publish
 
 trigger:
 - master
@@ -10,23 +7,33 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-
 
 steps:
 - task: DotNetCoreCLI@2
+  displayName: Build .net standard 2.0
   inputs:
     command: 'build'
     projects: '**/netstandard.csproj'
+    configuration: '$(BuildConfiguration)'
     feedsToUse: 'select'
     versioningScheme: 'off'
 
+- task: MSBuild@1
+  displayName: Build .net framework 4.5
+  inputs:
+    solution: '**/net45.csproj'
+    msbuildArchitecture: 'x64'
+    platform: 'Any CPU'
+    configuration: '$(BuildConfiguration)'
+    restoreNugetPackages: true
+
 - task: DotNetCoreCLI@2
+  displayName: Test .net standard 2.0
   inputs:
     command: 'test'
     projects: '**/test.csproj'
+    configuration: '$(BuildConfiguration)'
     testRunTitle: '.net standard test'
     feedsToUse: 'select'
     versioningScheme: 'off'
