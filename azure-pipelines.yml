@@ -54,18 +54,3 @@ steps:
     feedsToUse: 'select'
     packagesToPack: '**/Zipstorer.nuspec'
     versioningScheme: 'off'
-
-- task: ManualIntervention@8
-  inputs:
-    instructions: 'Publish to nuget.org?'
-    emailRecipients: 'jaime_olivares@hotmail.com'
-
-- task: NuGetCommand@2
-  displayName: Publish nuget package
-  inputs:
-    command: 'push'
-    feedsToUse: 'select'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-    nuGetFeedType: 'external'
-    publishFeedCredentials: 'Nuget.org'
-    versioningScheme: 'off'
