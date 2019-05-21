@@ -42,7 +42,7 @@ steps:
   inputs:
     command: 'test'
     projects: '**/test.csproj'
-    configuration: '$(BuildConfiguration)'
+    arguments: '--configuration $(BuildConfiguration)'
     testRunTitle: '.net standard test'
     feedsToUse: 'select'
     versioningScheme: 'off'
