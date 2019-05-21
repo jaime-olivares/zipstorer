@@ -22,7 +22,7 @@ steps:
 - task: MSBuild@1
   displayName: Build .net framework 4.5
   inputs:
-    solution: '**/net45.csproj'
+    solution: 'net45/Zipstorer.csproj'
     msbuildArchitecture: 'x64'
     platform: 'Any CPU'
     configuration: '$(BuildConfiguration)'
