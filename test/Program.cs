@@ -13,9 +13,9 @@ namespace Test
     {
         static void Main()
         {
-            var test = new UnitTestWrite();
-            test.Initialize();
-            test.AddStreamDate_Test();
+            var test = new UnitTestFolder();
+            UnitTestFolder.Initialize(null);
+            test.Folder_Test();
         }
     }
 }

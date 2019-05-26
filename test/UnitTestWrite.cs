@@ -9,11 +9,11 @@ namespace Test
     [TestClass]
     public class UnitTestWrite
     {
-        private string sampleFile = "sample1.zip";
-        private byte[] buffer;
+        const string sampleFile = "sample1.zip";
+        private static byte[] buffer;
 
-        [TestInitialize]
-        public void Initialize()
+        [ClassInitialize]
+        public static void Initialize(TestContext test)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -73,7 +73,7 @@ namespace Test
                 var dir = zip.ReadCentralDir();
                 Assert.IsFalse(dir.Count == 0);
                 Assert.IsTrue(dir[0].Method == ZipStorer.Compression.Deflate);
-                Assert.IsTrue(dir[0].CompressedSize < this.buffer.Length);
+                Assert.IsTrue(dir[0].CompressedSize < buffer.Length);
             }            
         }
 

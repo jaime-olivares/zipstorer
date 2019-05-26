@@ -16,7 +16,7 @@ There are many techniques to produce Zip files in a .NET environment, like the f
 
 ZipStorer is a minimalistic class to create Zip files and store/retrieve files to/from it, by using the Deflate algorithm. No other compression methods supported.
 
-Notice that .NET 3.0 and up Frameworks come with the *ZipPackage* class, but it is not available for .NET 2.0 or Compact Framework applications. A restriction of *ZipPackage* is that you cannot avoid generating an extra file inside named *[Content_Type].xml*.
+Notice that .NET 3.0 and up Frameworks come with the *ZipPackage* class, but it is not available for .NET 2.0 or Compact Framework applications. A restriction of *ZipPackage* is that you cannot avoid generating an extra file inside named *[Content_Type].xml* or reading a file without one.
 
 ## Using the code
 The ZipStorer class is the unique one needed to create the zip file. It contains a nested structure *(ZipFileEntry)* for collecting each directory entry. The class has been declared inside the System.IO namespace. 
@@ -115,7 +115,7 @@ The current release of ZipStorer supports both files and streams for creating an
     public ZipFileEntry AddStream(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment);
     public bool ExtractFile(ZipFileEntry _zfe, Stream _stream);
 
-    // Async methods:
+    // Async methods (not available for .Net Framework 2.0):
     public ZipFileEntry AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment)
     public async Task<bool> ExtractFileAsync(ZipFileEntry _zfe, Stream _stream);
 ````
@@ -140,11 +140,12 @@ If developing with Visual Studio Code, the `csproj` file must reference the [nug
 ## Advantages and usage
 ZipStorer has the following advantages:
 
-* It is a short and monolithic C# class that can be embedded as source code in any project (1 source file of 37K, 800+ lines)
+* It is a short and monolithic C# class that can be embedded as source code in any project (1 source file)
 * No external libraries, no extra DLLs in application deployments
 * No Interop calls, increments portability to Mono and other non-Windows platforms
-* Can also be implemented with Mono, .NET Compact Framework and .Net Standard
-* Async methods for storing and extracting files
+* Can also be implemented with Mono, .NET Compact Framework and .Net Standard 2.0+
+* Async methods for storing and extracting files (only for .Net Framework 4.5+ and .Net Standard 2.0+)
+* `NEW:` Support for Zip64 (file sizes > 4GB) 
 * Fast storing and extracting, because the code is simple and short
 * UTF8 Encoding support and ePUB compatibility
 * Also available as a [nuget package](https://www.nuget.org/packages/ZipStorer/)

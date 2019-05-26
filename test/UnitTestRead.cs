@@ -9,12 +9,12 @@ namespace Test
     [TestClass]
     public class UnitTestRead
     {
-        private string sampleFile = "sample.zip";
+        const string sampleFile = "sample.zip";
 
         private readonly DateTime baseDate = new DateTime(2019,1,1);
 
-        [TestInitialize]
-        public void Initialize()
+        [ClassInitialize]
+        public static void Initialize(TestContext test)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
