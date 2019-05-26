@@ -19,7 +19,8 @@ namespace System.IO.Compression
         /// <summary>
         /// Compression method enumeration
         /// </summary>
-        public enum Compression : ushort { 
+        public enum Compression : ushort 
+        { 
             /// <summary>Uncompressed storage</summary> 
             Store = 0, 
             /// <summary>Deflate compression method</summary>
@@ -211,7 +212,7 @@ namespace System.IO.Compression
 
             using (var stream = new FileStream(_pathname, FileMode.Open, FileAccess.Read))
             {
-                return AddStream(_method, _filenameInZip, stream, File.GetLastWriteTime(_pathname), _comment);
+                return this.AddStream(_method, _filenameInZip, stream, File.GetLastWriteTime(_pathname), _comment);
             }
         }
 
@@ -222,11 +223,12 @@ namespace System.IO.Compression
         public ZipFileEntry AddStream(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment = null)
         {
 #if NOASYNC
-            return AddStreamAsync(_method, _filenameInZip, _source, _modTime, _comment);
+            return this.AddStreamAsync(_method, _filenameInZip, _source, _modTime, _comment);
 #else            
-            return Task.Run(() => AddStreamAsync(_method, _filenameInZip, _source, _modTime, _comment)).Result;
+            return Task.Run(() => this.AddStreamAsync(_method, _filenameInZip, _source, _modTime, _comment)).Result;
 #endif
         }
+
         /// <summary>
         /// Add full contents of a stream into the Zip storage
         /// </summary>
@@ -236,11 +238,11 @@ namespace System.IO.Compression
         /// <param name="_modTime">Modification time of the data to store</param>
         /// <param name="_comment">Comment for stored file</param>
 #if NOASYNC
-        public ZipFileEntry
+        private ZipFileEntry
 #else                
         public async Task<ZipFileEntry> 
 #endif
-         AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment = null)
+        AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment = null)
         {
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not alowed");
@@ -260,7 +262,7 @@ namespace System.IO.Compression
             };
 
             // Write local header
-            WriteLocalHeader(zfe);
+            this.WriteLocalHeader(zfe);
             zfe.FileOffset = (uint)this.ZipFileStream.Position;
 
             // Write file to zip (store)
@@ -271,10 +273,9 @@ namespace System.IO.Compression
             #endif
 
             _source.Close();
-
             this.UpdateCrcAndSizes(zfe);
-
             Files.Add(zfe);
+
             return zfe;
         }
 
@@ -299,23 +300,25 @@ namespace System.IO.Compression
             else
                 foldername = _pathname;
 
-            if (_pathnameInZip != null && _pathnameInZip != "")
+            if (!string.IsNullOrEmpty(_pathnameInZip))
                 foldername = _pathnameInZip + foldername;
 
             if (!foldername.EndsWith(separator, StringComparison.CurrentCulture))
                 foldername = foldername + separator;
 
-            AddStream(_method, foldername, null/* TODO Change to default(_) if this is not a reference type */, File.GetLastWriteTime(_pathname), _comment);
+            // this.AddStream(_method, foldername, null, File.GetLastWriteTime(_pathname), _comment);
 
             // Process the list of files found in the directory.
             string[] fileEntries = Directory.GetFiles(_pathname);
+
             foreach (string fileName in fileEntries)
-                AddFile(_method, fileName, foldername + Path.GetFileName(fileName), "");
+                this.AddFile(_method, fileName, foldername + Path.GetFileName(fileName), "");
 
             // Recurse into subdirectories of this directory.
             string[] subdirectoryEntries = Directory.GetDirectories(_pathname);
+
             foreach (string subdirectory in subdirectoryEntries)
-                AddDirectory(_method, subdirectory, foldername, "");
+                this.AddDirectory(_method, subdirectory, foldername, "");
         }
 
         /// <summary>
@@ -437,7 +440,7 @@ namespace System.IO.Compression
             bool result;
             using(var output = new FileStream(_filename, FileMode.Create, FileAccess.Write))
             {
-                result = ExtractFile(_zfe, output);
+                result = this.ExtractFile(_zfe, output);
             }
                 
             if (result)
@@ -457,7 +460,7 @@ namespace System.IO.Compression
         public bool ExtractFile(ZipFileEntry _zfe, Stream _stream)
         {
 #if NOASYNC
-            return ExtractFileAsync(_zfe, _stream);
+            return this.ExtractFileAsync(_zfe, _stream);
 #else                
             return Task.Run(() => ExtractFileAsync(_zfe, _stream)).Result;
 #endif
@@ -471,7 +474,7 @@ namespace System.IO.Compression
         /// <returns>True if success, false if not.</returns>
         /// <remarks>Unique compression methods are Store and Deflate</remarks>
 #if NOASYNC
-        public bool
+        private bool
 #else                
         public async Task<bool> 
 #endif
@@ -495,6 +498,7 @@ namespace System.IO.Compression
 
             // Select input stream for inflating or just reading
             Stream inStream;
+
             if (_zfe.Method == Compression.Store)
                 inStream = this.ZipFileStream;
             else if (_zfe.Method == Compression.Deflate)
@@ -563,7 +567,6 @@ namespace System.IO.Compression
             if (!(_zip.ZipFileStream is FileStream))
                 throw new InvalidOperationException("RemoveEntries is allowed just over streams of type FileStream");
 
-
             //Get full list of entries
             var fullList = _zip.ReadCentralDir();
 
@@ -585,6 +588,7 @@ namespace System.IO.Compression
                         }
                     }
                 }
+
                 _zip.Close();
                 tempZip.Close();
 
@@ -764,20 +768,20 @@ namespace System.IO.Compression
             zipfile comment length          2 bytes
             zipfile comment (variable size)
         */
-        private void WriteEndRecord(uint _size, uint _offset)
+        private void WriteEndRecord(long _size, long _offset)
         {
             long dirOffset = ZipFileStream.Length;
 
             // Zip64 end of central directory record
             this.ZipFileStream.Position = dirOffset;
             this.ZipFileStream.Write(new byte[] { 80, 75, 6, 6 }, 0, 4);
-            this.ZipFileStream.Write(BitConverter.GetBytes((long)44), 0, 8); // size of zip64 end of central directory
-            this.ZipFileStream.Write(BitConverter.GetBytes((short)45), 0, 2); // version made by
-            this.ZipFileStream.Write(BitConverter.GetBytes((short)45), 0, 2); // version needed to extract 
-            this.ZipFileStream.Write(BitConverter.GetBytes((int)0), 0, 4); // current disk
-            this.ZipFileStream.Write(BitConverter.GetBytes((int)0), 0, 4); // start of central directory 
-            this.ZipFileStream.Write(BitConverter.GetBytes((long)Files.Count+ExistingFiles), 0, 8); // total number of entries in the central directory in disk
-            this.ZipFileStream.Write(BitConverter.GetBytes((long)Files.Count+ExistingFiles), 0, 8); // total number of entries in the central directory
+            this.ZipFileStream.Write(BitConverter.GetBytes((Int64)44), 0, 8); // size of zip64 end of central directory
+            this.ZipFileStream.Write(BitConverter.GetBytes((UInt16)45), 0, 2); // version made by
+            this.ZipFileStream.Write(BitConverter.GetBytes((UInt16)45), 0, 2); // version needed to extract 
+            this.ZipFileStream.Write(BitConverter.GetBytes((UInt32)0), 0, 4); // current disk
+            this.ZipFileStream.Write(BitConverter.GetBytes((UInt32)0), 0, 4); // start of central directory 
+            this.ZipFileStream.Write(BitConverter.GetBytes((Int64)Files.Count+ExistingFiles), 0, 8); // total number of entries in the central directory in disk
+            this.ZipFileStream.Write(BitConverter.GetBytes((Int64)Files.Count+ExistingFiles), 0, 8); // total number of entries in the central directory
             this.ZipFileStream.Write(BitConverter.GetBytes(_size), 0, 8); // size of the central directory
             this.ZipFileStream.Write(BitConverter.GetBytes(_offset), 0, 8); // offset of start of central directory with respect to the starting disk number
 
@@ -837,7 +841,6 @@ namespace System.IO.Compression
                 }
 
                 totalRead += (uint)bytesRead;
-
             } while (bytesRead > 0);
 
             outStream.Flush();
