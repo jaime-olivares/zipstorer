@@ -5,18 +5,18 @@ A Pure C# class for storing files in Zip format
 [![github](https://img.shields.io/github/stars/jaime-olivares/zipstorer.svg)]()
 [![Build Status](https://dev.azure.com/jaime-olivares/zipstorer/_apis/build/status/jaime-olivares.zipstorer?branchName=master)](https://dev.azure.com/jaime-olivares/zipstorer/_build/latest?definitionId=1&branchName=master)
 
-## Introduction
-There are many techniques to produce Zip files in a .NET environment, like the following:
+ZipStorer is a minimalistic cross-platform .net class to create Zip files and store/retrieve files to/from it, by using the Deflate algorithm. No other compression methods supported.
 
-* Using the *java.util.zip* namespace
-* Invoking Shell API features
-* Using a third-party .NET library
-* Wrapping and marshalling a non-.NET library
-* Invoking a compression tool at command-line
+## Advantages and usage
+ZipStorer has the following advantages:
 
-ZipStorer is a minimalistic class to create Zip files and store/retrieve files to/from it, by using the Deflate algorithm. No other compression methods supported.
-
-Notice that .NET 3.0 and up Frameworks come with the *ZipPackage* class, but it is not available for .NET 2.0 or Compact Framework applications. A restriction of *ZipPackage* is that you cannot avoid generating an extra file inside named *[Content_Type].xml* or reading a file without one.
+* It is a short and monolithic C# class that can be embedded as source code in any project (1 source file)
+* No Interop calls, increments portability to Mono and other non-Windows platforms
+* Can also be implemented with Mono, .NET Compact Framework and .Net Standard 2.0+
+* Async methods for storing and extracting files (only for .Net Framework 4.5+ and .Net Standard 2.0+)
+* `NEW:` Support for Zip64 (file sizes > 4GB) 
+* UTF8 Encoding support and ePUB compatibility
+* Available as a [nuget package](https://www.nuget.org/packages/ZipStorer/)
 
 ## Using the code
 The ZipStorer class is the unique one needed to create the zip file. It contains a nested structure *(ZipFileEntry)* for collecting each directory entry. The class has been declared inside the System.IO namespace. 
@@ -136,16 +136,3 @@ If developing with Visual Studio Code, the `csproj` file must reference the [nug
     <PackageReference Include="ZipStorer" Version="*" />
   </ItemGroup>
 ````
-
-## Advantages and usage
-ZipStorer has the following advantages:
-
-* It is a short and monolithic C# class that can be embedded as source code in any project (1 source file)
-* No external libraries, no extra DLLs in application deployments
-* No Interop calls, increments portability to Mono and other non-Windows platforms
-* Can also be implemented with Mono, .NET Compact Framework and .Net Standard 2.0+
-* Async methods for storing and extracting files (only for .Net Framework 4.5+ and .Net Standard 2.0+)
-* `NEW:` Support for Zip64 (file sizes > 4GB) 
-* Fast storing and extracting, because the code is simple and short
-* UTF8 Encoding support and ePUB compatibility
-* Also available as a [nuget package](https://www.nuget.org/packages/ZipStorer/)
