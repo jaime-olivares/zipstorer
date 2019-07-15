@@ -1,7 +1,7 @@
 # ZipStorer
 A Pure C# class for storing files in Zip format
 
-[![NuGet](https://img.shields.io/nuget/v/ZipStorer.svg)](https://www.nuget.org/packages/ZipStorer/)
+[![Financial Contributors on Open Collective](https://opencollective.com/jaime-olivares-opensource/all/badge.svg?label=financial+contributors)](https://opencollective.com/jaime-olivares-opensource) [![NuGet](https://img.shields.io/nuget/v/ZipStorer.svg)](https://www.nuget.org/packages/ZipStorer/)
 [![github](https://img.shields.io/github/stars/jaime-olivares/zipstorer.svg)]()
 [![Build Status](https://dev.azure.com/jaime-olivares-f/zipstorer/_apis/build/status/jaime-olivares.zipstorer?branchName=master)](https://dev.azure.com/jaime-olivares-f/zipstorer/_build/latest?definitionId=1&branchName=master)
 
@@ -136,3 +136,33 @@ If developing with Visual Studio Code, the `csproj` file must reference the [nug
     <PackageReference Include="ZipStorer" Version="*" />
   </ItemGroup>
 ````
+
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/jaime-olivares/zipstorer/graphs/contributors"><img src="https://opencollective.com/jaime-olivares-opensource/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/jaime-olivares-opensource/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/jaime-olivares-opensource"><img src="https://opencollective.com/jaime-olivares-opensource/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/jaime-olivares-opensource/contribute)]
+
+<a href="https://opencollective.com/jaime-olivares-opensource/organization/0/website"><img src="https://opencollective.com/jaime-olivares-opensource/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/jaime-olivares-opensource/organization/1/website"><img src="https://opencollective.com/jaime-olivares-opensource/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/jaime-olivares-opensource/organization/2/website"><img src="https://opencollective.com/jaime-olivares-opensource/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/jaime-olivares-opensource/organization/3/website"><img src="https://opencollective.com/jaime-olivares-opensource/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/jaime-olivares-opensource/organization/4/website"><img src="https://opencollective.com/jaime-olivares-opensource/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/jaime-olivares-opensource/organization/5/website"><img src="https://opencollective.com/jaime-olivares-opensource/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/jaime-olivares-opensource/organization/6/website"><img src="https://opencollective.com/jaime-olivares-opensource/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/jaime-olivares-opensource/organization/7/website"><img src="https://opencollective.com/jaime-olivares-opensource/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/jaime-olivares-opensource/organization/8/website"><img src="https://opencollective.com/jaime-olivares-opensource/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/jaime-olivares-opensource/organization/9/website"><img src="https://opencollective.com/jaime-olivares-opensource/organization/9/avatar.svg"></a>
