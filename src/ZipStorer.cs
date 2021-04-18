@@ -91,6 +91,8 @@ namespace System.IO.Compression
         private FileAccess Access;
         // leave the stream open after the ZipStorer object is disposed
         private bool leaveOpen;
+        // Dispose control
+        private bool isDisposed = false;
         // Static CRC32 Table
         private static UInt32[] CrcTable = null;
         // Default filename encoder
@@ -1081,14 +1083,27 @@ namespace System.IO.Compression
         }
 #endregion
 
-#region IDisposable Members
+#region IDisposable implementation
         /// <summary>
         /// Closes the Zip file stream
         /// </summary>
-        public void Dispose()
+        public void Dispose() 
         {
-            this.Close();
+            Dispose(true);
+
+            GC.SuppressFinalize(this);      
         }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                if (disposing)
+                    this.Close();
+ 
+                isDisposed = true;   
+            }
+        }        
 #endregion
     }
 }

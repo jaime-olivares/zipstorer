@@ -25,6 +25,7 @@ namespace Test
             {
                 zip.AddDirectory(ZipStorer.Compression.Deflate, "/some/folder", null);
             }
+            File.Delete(sampleFile);
         }
     }
 }
