@@ -58,9 +58,6 @@ The second method allows adding data from any kind of stream object derived from
 
 Finally, it is required to close the storage with the *Close()* method. This will save the central directory information too. Alternatively, the *Dispose()* method can be used.
 
-## Sample application
-The provided sample application is a Winforms project. It will ask for files and store the path names in a *ListBox*, along with the operation type: creating or appending, and compression method. 
-
 ## Extracting stored files
 For extracting a file, the zip directory shall be read first, by using the *ReadCentralDir()* method, and then the *ExtractFile()* method, like in the following minimal sample code:
 
