@@ -164,10 +164,29 @@ namespace System.IO.Compression
         /// <returns>A valid ZipStorer object</returns>
         public static ZipStorer Open(string _filename, FileAccess _access)
         {
-            Stream stream = (Stream)new FileStream(_filename, FileMode.Open, _access == FileAccess.Read ? FileAccess.Read : FileAccess.ReadWrite);
+            Stream stream = null;
+            ZipStorer zip = null;
+            try
+            {
+                stream = (Stream)new FileStream(_filename, FileMode.Open, _access == FileAccess.Read ? FileAccess.Read : FileAccess.ReadWrite);
 
-            ZipStorer zip = Open(stream, _access);
+                zip = Open(stream, _access);
             zip.FileName = _filename;
+            }
+            catch (Exception e)
+            {
+                if (stream != null)
+                {
+                    stream.Dispose();
+                    stream = null;
+                }
+                if (zip != null)
+                {
+                    zip.Dispose();
+                    zip = null;
+                }
+                throw e;
+            }
 
             return zip;
         }
@@ -1013,6 +1032,19 @@ namespace System.IO.Compression
         {
             if (this.ZipFileStream.Length < 22)
                 return false;
+
+            this.ZipFileStream.Seek(0, SeekOrigin.Begin);
+            {
+                var brCheckHeaderSig = new BinaryReader(this.ZipFileStream);
+                {
+                    UInt32 headerSig = brCheckHeaderSig.ReadUInt32();
+                    if (headerSig != 0x04034b50)
+                    {
+                        // not PK.. signature header
+                        return false;
+                    }
+                }
+            }
 
             try
             {
