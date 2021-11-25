@@ -66,9 +66,10 @@ steps:
     OverWrite: true
     flattenFolders: true
 
-- task: PublishBuildArtifacts@1
-  displayName: Publish Artifacts
+- task: NuGetCommand@2
+  displayName: 'Publish nuget package'
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
+    command: push
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg'
+    nuGetFeedType: external
+    publishFeedCredentials: Nuget.org
