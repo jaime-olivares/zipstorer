@@ -16,7 +16,7 @@ namespace Test
         [ClassInitialize]
         public static void Initialize(TestContext test)
         {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            
         }
 
         [TestMethod]

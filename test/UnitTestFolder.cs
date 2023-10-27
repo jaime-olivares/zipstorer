@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -14,11 +13,11 @@ namespace Test
         [ClassInitialize]
         public static void Initialize(TestContext test)
         {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
         }
 
-        // [TestMethod]
-        public void Folder_Test()
+        [TestMethod]
+        public static void FolderTest()
         {
             File.Delete(sampleFile);
             using (ZipStorer zip = ZipStorer.Create(sampleFile))
