@@ -1,9 +1,3 @@
-using System;
-using System.IO;
-using System.IO.Compression;
-using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 // Used for debugging purposes only
 // Set GenerateProgramFile to false in test.csproj
 
@@ -15,7 +9,7 @@ namespace Test
         {
             var test = new UnitTestFolder();
             UnitTestFolder.Initialize(null);
-            test.Folder_Test();
+            UnitTestFolder.FolderTest();
         }
     }
 }
