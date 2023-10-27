@@ -18,6 +18,8 @@ namespace ZipStorer
     /// </summary>
     public class ZipStorer : IDisposable
     {
+        // 64Kb, the size of the comment field in a ZIP file.
+        private const int SixtyFourK = 65535;
 
         #region Public Properties
         /// <summary>True if UTF8 encoding for filename and comments, false if default (CP 437)</summary>
@@ -323,10 +325,10 @@ namespace ZipStorer
         /// <remarks>This is a required step, unless automatic dispose is used</remarks>
         public void Close()
         {
-            if (_access != FileAccess.Read)
+            if (_access != FileAccess.Read && _files.Count > 0)
             {
-                uint centralOffset = (uint)_zipFileStream.Position;
-                uint centralSize = 0;
+                long centralOffset = _zipFileStream.Position;
+                long centralSize = 0;
 
                 if (_centralDirImage != null)
                     _zipFileStream.Write(_centralDirImage, 0, _centralDirImage.Length);
@@ -335,7 +337,7 @@ namespace ZipStorer
                 {
                     long pos = _zipFileStream.Position;
                     WriteCentralDirRecord(fileEntry);
-                    centralSize += (uint)(_zipFileStream.Position - pos);
+                    centralSize += _zipFileStream.Position - pos;
                 }
 
                 if (_centralDirImage != null)
@@ -496,7 +498,7 @@ namespace ZipStorer
             }
 
             // Buffered copy
-            byte[] buffer = new byte[65535];
+            byte[] buffer = new byte[SixtyFourK];
             _zipFileStream.Seek(zfe.FileOffset, SeekOrigin.Begin);
             long bytesPending = zfe.FileSize;
 
@@ -1039,7 +1041,8 @@ namespace ZipStorer
                 return false;
             }
             
-            _zipFileStream.Seek(-17, SeekOrigin.End);
+            var end = _zipFileStream.Seek(-17, SeekOrigin.End);
+
             try
             {
                 do
@@ -1102,7 +1105,7 @@ namespace ZipStorer
 
                         return true;
                     }
-                } while (_zipFileStream.Position > 0);
+                } while (_zipFileStream.Position > end - SixtyFourK);
             }
             catch
             {
