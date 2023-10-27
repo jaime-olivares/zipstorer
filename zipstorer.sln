@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "netstandard", "netstandard20\netstandard.csproj", "{9784E5E4-C509-40E5-B61F-E08256A669C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipStorer", "netstandard20\ZipStorer.csproj", "{9784E5E4-C509-40E5-B61F-E08256A669C9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "test", "test\test.csproj", "{06CC1951-28C6-4BD0-8CE5-C4258632B318}"
 EndProject

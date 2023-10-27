@@ -9,7 +9,7 @@
     <AssemblyName>ZipStorer</AssemblyName>
     <PackageId>netstandard</PackageId>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>3.9.0</AssemblyVersion>
+    <AssemblyVersion>4.0.0</AssemblyVersion>
     <Version>$(AssemblyVersion)</Version>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
@@ -23,6 +23,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/jaime-olivares/zipstorer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jaime-olivares/zipstorer.git</RepositoryUrl>
+    <PackageTags>zip, async</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

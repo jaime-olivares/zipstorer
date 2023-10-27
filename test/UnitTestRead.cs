@@ -1,95 +1,80 @@
 using System;
 using System.IO;
-using System.IO.Compression;
-using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Test
+namespace Test;
+
+[TestClass]
+public class UnitTestRead
 {
-    [TestClass]
-    public class UnitTestRead
+    private const string SampleFile = "sample.zip";
+
+    private readonly DateTime _baseDate = new(2019,1,1);
+
+    [TestMethod]
+    public void OpenReadTest()
     {
-        const string sampleFile = "sample.zip";
+        using var zip = ZipStorer.ZipStorer.Open(SampleFile, FileAccess.Read);
+    }
 
-        private readonly DateTime baseDate = new DateTime(2019,1,1);
+    [TestMethod]
+    public void ReadCentralDirTest()
+    {
+        using var zip = ZipStorer.ZipStorer.Open(SampleFile, FileAccess.Read);
 
-        [ClassInitialize]
-        public static void Initialize(TestContext test)
-        {
-            
-        }
+        var dir = zip.ReadCentralDir();
+        Assert.AreEqual(dir.Count, 10);
+    }
 
-        [TestMethod]
-        public void OpenRead_Test()
-        {
-            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
-            {                
-            }
-        }
+    [TestMethod]
+    public void ExtractFolderTest()
+    {
+        using var zip = ZipStorer.ZipStorer.Open(SampleFile, FileAccess.Read);
 
-        [TestMethod]
-        public void ReadCentralDir_Test()
-        {
-            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
-            {
-                var dir = zip.ReadCentralDir();
-                Assert.AreEqual(dir.Count, 10);
-            }
-        }
+        var dir = zip.ReadCentralDir();
+        Assert.IsFalse(dir.Count == 0);
+        byte[] output = zip.ExtractFile(dir[0]);
 
-        [TestMethod]
-        public void ExtractFolder_Test()
-        {
-            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
-            {
-                var dir = zip.ReadCentralDir();
-                Assert.IsFalse(dir.Count == 0);
-                zip.ExtractFile(dir[0], out byte[] output);
-                Assert.AreEqual(output.Length, 0);
-            }            
-        }
+        Assert.AreEqual(output.Length, 0);
+    }
 
-        [TestMethod]
-        public void ExtractFile_Test()
-        {
-            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
-            {
-                var dir = zip.ReadCentralDir();
-                Assert.IsFalse(dir.Count == 0);
-                zip.ExtractFile(dir[4], out byte[] output);
-                Assert.IsFalse(output.Length == 0);
-            }            
-        }
+    [TestMethod]
+    public void ExtractFileTest()
+    {
+        using var zip = ZipStorer.ZipStorer.Open(SampleFile, FileAccess.Read);
 
-        [TestMethod]
-        public void ReadModifyTime_Test()
-        {
-            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
-            {
-                var dir = zip.ReadCentralDir();
-                Assert.IsTrue(dir[0].ModifyTime > baseDate);
-            }            
-        }
+        var dir = zip.ReadCentralDir();
+        Assert.IsFalse(dir.Count == 0);
 
-        [TestMethod]
-        public void ReadAccessTime_Test()
-        {
-            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
-            {
-                var dir = zip.ReadCentralDir();
-                Assert.IsTrue(dir[0].AccessTime > DateTime.Today);
-            }            
-        }
+        byte[] output = zip.ExtractFile(dir[4]);
+        Assert.IsFalse(output.Length == 0);
+    }
 
-        [TestMethod]
-        public void ReadCreationTime_Test()
-        {
-            using (ZipStorer zip = ZipStorer.Open(sampleFile, FileAccess.Read))
-            {
-                var dir = zip.ReadCentralDir();
-                Assert.IsTrue(dir[0].CreationTime > baseDate);
-                Assert.IsTrue(dir[0].CreationTime <= dir[0].ModifyTime);
-            }            
-        }
+    [TestMethod]
+    public void ReadModifyTimeTest()
+    {
+        using var zip = ZipStorer.ZipStorer.Open(SampleFile, FileAccess.Read);
+
+        var dir = zip.ReadCentralDir();
+        Assert.IsTrue(dir[0].ModifyTime > _baseDate);
+    }
+
+    [TestMethod]
+    public void ReadAccessTimeTest()
+    {
+        using var zip = ZipStorer.ZipStorer.Open(SampleFile, FileAccess.Read);
+
+        var dir = zip.ReadCentralDir();
+        Assert.IsTrue(dir[0].AccessTime > DateTime.Today);
+    }
+
+    [TestMethod]
+    public void ReadCreationTimeTest()
+    {
+        using var zip = ZipStorer.ZipStorer.Open(SampleFile, FileAccess.Read);
+
+        var dir = zip.ReadCentralDir();
+        Assert.IsTrue(dir[0].CreationTime > _baseDate);
+        Assert.IsTrue(dir[0].CreationTime <= dir[0].ModifyTime);
     }
 }
