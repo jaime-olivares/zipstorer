@@ -7,9 +7,9 @@
     <Authors>Jaime Olivares</Authors>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>ZipStorer</AssemblyName>
-    <PackageId>netstandard</PackageId>
+    <PackageId>ZipStorer</PackageId>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>4.0.0</AssemblyVersion>
+    <AssemblyVersion>4.1.0</AssemblyVersion>
     <Version>$(AssemblyVersion)</Version>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <EnableNETAnalyzers>True</EnableNETAnalyzers>

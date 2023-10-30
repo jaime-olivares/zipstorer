@@ -562,7 +562,7 @@ namespace ZipStorer
                     }
 
                     Directory.CreateDirectory(Path.GetDirectoryName(completeFileName) ?? string.Empty);
-                    using (Stream destination = new FileStream(completeFileName, FileMode.CreateNew, FileAccess.Write, FileShare.None, BufferSize, true))
+                    using (Stream destination = new FileStream(completeFileName, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, true))
                     {
                         await zip.ExtractFileAsync(entry, destination);
                         await destination.FlushAsync(cancel);
