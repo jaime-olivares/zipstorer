@@ -429,7 +429,7 @@ namespace ZipStorer
             // Make sure the parent directory exist
             string path = Path.GetDirectoryName(filename);
 
-            if (path != null && !Directory.Exists(path))
+            if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
             // Check if it is a directory. If so, do nothing.
@@ -437,7 +437,7 @@ namespace ZipStorer
                 return true;
 
             bool result;
-            using(var output = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.Read, BufferSize, FileOptions.Asynchronous))
+            using(var output = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite, FileShare.None, BufferSize, FileOptions.Asynchronous))
             {
                 result = ExtractFile(zfe, output);
             }
@@ -554,15 +554,24 @@ namespace ZipStorer
                 di = Directory.CreateDirectory(destinationDirectoryPath);
                 foreach (var entry in dir)
                 {
-                    var completeFileName = Path.GetFullPath(Path.Combine(di.FullName, entry.FilenameInZip));
+                    string completeFileName = Path.GetFullPath(Path.Combine(di.FullName, entry.FilenameInZip));
                     if (!completeFileName.StartsWith(di.FullName, StringComparison.OrdinalIgnoreCase))
                     {
                         throw new IOException(
                             "Trying to extract file outside of destination directory. See this link for more info: https://snyk.io/research/zip-slip-vulnerability");
                     }
 
-                    Directory.CreateDirectory(Path.GetDirectoryName(completeFileName) ?? string.Empty);
-                    using (Stream destination = new FileStream(completeFileName, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, true))
+                    // Make sure the parent directory exist
+                    string path = Path.GetDirectoryName(completeFileName) ?? string.Empty;
+
+                    if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
+                        Directory.CreateDirectory(path);
+
+                    // Do not attempt to unzip directories as files
+                    if (Directory.Exists(completeFileName))
+                        continue;
+
+                    using (Stream destination = new FileStream(completeFileName, FileMode.Create, FileAccess.ReadWrite, FileShare.None, BufferSize, true))
                     {
                         await zip.ExtractFileAsync(entry, destination);
                         await destination.FlushAsync(cancel);
