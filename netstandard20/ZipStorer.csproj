@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>A Pure C# class to store files in Zip</Description>
+    <AssemblyTitle>ZipStorer</AssemblyTitle>
+    <VersionPrefix>$(AssemblyVersion)</VersionPrefix>
+    <Authors>Jaime Olivares</Authors>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>ZipStorer</AssemblyName>
+    <PackageId>ZipStorer</PackageId>
+    <OutputType>Library</OutputType>
+    <AssemblyVersion>4.1.2</AssemblyVersion>
+    <Version>$(AssemblyVersion)</Version>
+    <FileVersion>$(AssemblyVersion)</FileVersion>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Copyright>Copyright © Jaime Olivares 2019</Copyright>
+    <Title>ZipStorer</Title>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/jaime-olivares/zipstorer</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jaime-olivares/zipstorer.git</RepositoryUrl>
+    <PackageTags>zip, async</PackageTags>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Runtime" Version="*" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
+    <PackageReference Include="System.Threading.Thread" Version="*" />
+  </ItemGroup>
+
+</Project>
