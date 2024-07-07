@@ -10,12 +10,11 @@ ZipStorer is a minimalistic cross-platform .net class to create Zip files and st
 ## Advantages and usage
 ZipStorer has the following advantages:
 
-* It is a short and monolithic C# class that can be embedded as source code in any project (1 source file)
+* It is a short and monolithic C# class that can be embedded as source code in any project 
 * No Interop calls, increments portability to Mono and other non-Windows platforms
-* Can also be implemented with Mono, .NET Compact Framework and .Net Standard 2.0+
-* Async methods for storing and extracting files (only for .Net Framework 4.5+ and .Net Standard 2.0+)
-* `NEW:` Support for Zip64 (file sizes > 4GB) 
-* UTF8 Encoding support and ePUB compatibility
+* Async methods for storing and extracting files 
+* Support for Zip64 (file sizes > 4GB) 
+* UTF8 Encoding support
 * Available as a [nuget package](https://www.nuget.org/packages/ZipStorer/)
 
 ## Using the code
@@ -112,8 +111,8 @@ The current release of ZipStorer supports both files and streams for creating an
     public ZipFileEntry AddStream(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment);
     public bool ExtractFile(ZipFileEntry _zfe, Stream _stream);
 
-    // Async methods (not available for .Net Framework 2.0):
-    public ZipFileEntry AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment)
+    // Async methods
+    public ZipFileEntry AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment);
     public async Task<bool> ExtractFileAsync(ZipFileEntry _zfe, Stream _stream);
 ````
 

@@ -332,10 +332,10 @@ namespace System.IO.Compression
         /// <remarks>This is a required step, unless automatic dispose is used</remarks>
         public void Close()
         {
-            if (this.Access != FileAccess.Read)
+            if (this.Access != FileAccess.Read && Files.Count > 0)
             {
-                uint centralOffset = (uint)this.ZipFileStream.Position;
-                uint centralSize = 0;
+                long centralOffset = this.ZipFileStream.Position;
+                long centralSize = 0;
 
                 if (this.CentralDirImage != null)
                     this.ZipFileStream.Write(CentralDirImage, 0, CentralDirImage.Length);
@@ -344,7 +344,7 @@ namespace System.IO.Compression
                 {
                     long pos = this.ZipFileStream.Position;
                     this.WriteCentralDirRecord(Files[i]);
-                    centralSize += (uint)(this.ZipFileStream.Position - pos);
+                    centralSize += this.ZipFileStream.Position - pos;
                 }
 
                 if (this.CentralDirImage != null)
@@ -985,22 +985,20 @@ namespace System.IO.Compression
                 return false;
 
             this.ZipFileStream.Seek(0, SeekOrigin.Begin);
+            
+            var br = new BinaryReader(this.ZipFileStream);
+            UInt32 headerSig = br.ReadUInt32();
+            
+            if (headerSig != 0x04034b50)
             {
-                var brCheckHeaderSig = new BinaryReader(this.ZipFileStream);
-                {
-                    UInt32 headerSig = brCheckHeaderSig.ReadUInt32();
-                    if (headerSig != 0x04034b50)
-                    {
-                        // not PK.. signature header
-                        return false;
-                    }
-                }
+                // not PK.. signature header
+                return false;
             }
+
+            var end = this.ZipFileStream.Seek(-17, SeekOrigin.End);
 
             try
             {
-                this.ZipFileStream.Seek(-17, SeekOrigin.End);
-                BinaryReader br = new BinaryReader(this.ZipFileStream);
                 do
                 {
                     this.ZipFileStream.Seek(-5, SeekOrigin.Current);
@@ -1058,7 +1056,7 @@ namespace System.IO.Compression
                         this.ZipFileStream.Seek(centralDirOffset, SeekOrigin.Begin);
                         return true;
                     }
-                } while (this.ZipFileStream.Position > 0);
+                } while (this.ZipFileStream.Position > end - 65535);
             }
             catch { }
 
