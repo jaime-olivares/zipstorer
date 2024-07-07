@@ -96,7 +96,6 @@ namespace System.IO.Compression
 #endregion
 
 #region Public methods
-        // Static constructor. Just invoked once in order to create the CRC32 lookup table.
         static ZipStorer()
         {
             // Generate CRC32 table
@@ -113,6 +112,10 @@ namespace System.IO.Compression
                 }
                 CrcTable[i] = c;
             }
+
+            // Configure CP 437 encoding
+            CodePagesEncodingProvider.Instance.GetEncoding(437);
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
         /// <summary>
