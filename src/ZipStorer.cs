@@ -796,6 +796,15 @@ namespace System.IO.Compression
         // Copies all the source file into the zip storage
         private async Task<Compression> Store(ZipFileEntry _zfe, Stream _source)
         {
+            if (_source.Length == 0)
+            {
+                _zfe.FileSize = 0;
+                _zfe.CompressedSize = 0;
+                _zfe.Crc32 = 0;
+                _zfe.Method = Compression.Store;
+                return _zfe.Method;
+            }
+
             byte[] buffer = new byte[16384];
             int bytesRead;
             uint totalRead = 0;
