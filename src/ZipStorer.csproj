@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Zipstorer</Description>
+    <AssemblyTitle>ZipStorer</AssemblyTitle>
+    <VersionPrefix>4.0.0</VersionPrefix>
+    <Authors>Jaime Olivares</Authors>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <AssemblyName>ZipStorer</AssemblyName>
+    <PackageId>ZipStorer</PackageId>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+</Project>

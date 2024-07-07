@@ -1,13 +1,9 @@
 // ZipStorer, by Jaime Olivares
 // Website: http://github.com/jaime-olivares/zipstorer
 
-using System;
 using System.Collections.Generic;
 using System.Text;
-
-#if !NOASYNC
-    using System.Threading.Tasks;
-#endif
+using System.Threading.Tasks;
 
 namespace System.IO.Compression
 {
@@ -173,7 +169,7 @@ namespace System.IO.Compression
                 zip = Open(stream, _access);
             zip.FileName = _filename;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 if (stream != null)
                 {
@@ -185,7 +181,7 @@ namespace System.IO.Compression
                     zip.Dispose();
                     zip = null;
                 }
-                throw e;
+                throw;
             }
 
             return zip;
@@ -243,11 +239,8 @@ namespace System.IO.Compression
         /// <remarks>Same parameters and return value as AddStreamAsync()</remarks>
         public ZipFileEntry AddStream(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment = null)
         {
-#if NOASYNC
-            return this.AddStreamAsync(_method, _filenameInZip, _source, _modTime, _comment);
-#else            
+            // return this.AddStreamAsync(_method, _filenameInZip, _source, _modTime, _comment);
             return Task.Run(() => this.AddStreamAsync(_method, _filenameInZip, _source, _modTime, _comment)).Result;
-#endif
         }
 
         /// <summary>
@@ -258,12 +251,7 @@ namespace System.IO.Compression
         /// <param name="_source">Stream object containing the data to store in Zip</param>
         /// <param name="_modTime">Modification time of the data to store</param>
         /// <param name="_comment">Comment for stored file</param>
-#if NOASYNC
-        private ZipFileEntry
-#else                
-        public async Task<ZipFileEntry> 
-#endif
-        AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment = null)
+        public async Task<ZipFileEntry> AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment = null)
         {
             if (Access == FileAccess.Read)
                 throw new InvalidOperationException("Writing is not alowed");
@@ -287,11 +275,7 @@ namespace System.IO.Compression
             zfe.FileOffset = (uint)this.ZipFileStream.Position;
 
             // Write file to zip (store)
-            #if NOASYNC
-                Store(zfe, _source);
-            #else
-                await Store(zfe, _source);
-            #endif
+            await Store(zfe, _source);
 
             _source.Close();
             this.UpdateCrcAndSizes(zfe);
@@ -480,11 +464,7 @@ namespace System.IO.Compression
         /// <remarks>Same parameters and return value as ExtractFileAsync</remarks>
         public bool ExtractFile(ZipFileEntry _zfe, Stream _stream)
         {
-#if NOASYNC
-            return this.ExtractFileAsync(_zfe, _stream);
-#else                
             return Task.Run(() => ExtractFileAsync(_zfe, _stream)).Result;
-#endif
         }
 
         /// <summary>
@@ -494,12 +474,7 @@ namespace System.IO.Compression
         /// <param name="_stream">Stream to store the uncompressed data</param>
         /// <returns>True if success, false if not.</returns>
         /// <remarks>Unique compression methods are Store and Deflate</remarks>
-#if NOASYNC
-        private bool
-#else                
-        public async Task<bool> 
-#endif
-        ExtractFileAsync(ZipFileEntry _zfe, Stream _stream)
+        public async Task<bool> ExtractFileAsync(ZipFileEntry _zfe, Stream _stream)
         {
             if (!_stream.CanWrite)
                 throw new InvalidOperationException("Stream cannot be written");
@@ -508,11 +483,7 @@ namespace System.IO.Compression
             byte[] signature = new byte[4];
             this.ZipFileStream.Seek(_zfe.HeaderOffset, SeekOrigin.Begin);
             
-            #if NOASYNC
-                this.ZipFileStream.Read(signature, 0, 4);
-            #else
-                await this.ZipFileStream.ReadAsync(signature, 0, 4);
-            #endif
+            await this.ZipFileStream.ReadAsync(signature, 0, 4);
 
             if (BitConverter.ToUInt32(signature, 0) != 0x04034b50)
                 return false;
@@ -534,13 +505,8 @@ namespace System.IO.Compression
 
             while (bytesPending > 0)
             {
-                #if NOASYNC
-                    int bytesRead = inStream.Read(buffer, 0, (int)Math.Min(bytesPending, buffer.Length));
-                    _stream.Write(buffer, 0, bytesRead);
-                #else
-                    int bytesRead = await inStream.ReadAsync(buffer, 0, (int)Math.Min(bytesPending, buffer.Length));
-                    await _stream.WriteAsync(buffer, 0, bytesRead);
-                #endif
+                int bytesRead = await inStream.ReadAsync(buffer, 0, (int)Math.Min(bytesPending, buffer.Length));
+                await _stream.WriteAsync(buffer, 0, bytesRead);
                                         
                 bytesPending -= (uint)bytesRead;
             }
@@ -822,12 +788,7 @@ namespace System.IO.Compression
         }
 
         // Copies all the source file into the zip storage
-#if NOASYNC
-        private Compression
-#else                
-        private async Task<Compression> 
-#endif
-        Store(ZipFileEntry _zfe, Stream _source)
+        private async Task<Compression> Store(ZipFileEntry _zfe, Stream _source)
         {
             byte[] buffer = new byte[16384];
             int bytesRead;
@@ -846,15 +807,9 @@ namespace System.IO.Compression
             
             do
             {
-#if NOASYNC
-                bytesRead = _source.Read(buffer, 0, buffer.Length);
-                if (bytesRead > 0)
-                    outStream.Write(buffer, 0, bytesRead);
-#else
                 bytesRead = await _source.ReadAsync(buffer, 0, buffer.Length);
                 if (bytesRead > 0)
                     await outStream.WriteAsync(buffer, 0, bytesRead);
-#endif 
 
                 for (uint i = 0; i < bytesRead; i++)
                 {
@@ -882,11 +837,7 @@ namespace System.IO.Compression
                 this.ZipFileStream.SetLength(posStart);
                 _source.Position = sourceStart;
 
-                #if NOASYNC                
-                    return this.Store(_zfe, _source);
-                #else
-                    return await this.Store(_zfe, _source);
-                #endif
+                return await this.Store(_zfe, _source);
             }
 
             return _zfe.Method;

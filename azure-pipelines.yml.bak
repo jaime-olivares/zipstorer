@@ -1,5 +1,3 @@
-# Build for both .net standard 2.0 and .net framework 2.0/4.5 + nuget publish
-
 trigger:
 - master
 
@@ -22,20 +20,6 @@ steps:
     configuration: '$(BuildConfiguration)'
     feedsToUse: 'select'
     versioningScheme: 'off'
-
-- task: MSBuild@1
-  displayName: Build .net framework 2.0
-  inputs:
-    solution: '**/net20.csproj'
-    platform: 'AnyCPU'
-    configuration: '$(BuildConfiguration)'
-
-- task: MSBuild@1
-  displayName: Build .net framework 4.5
-  inputs:
-    solution: '**/net45.csproj'
-    platform: 'AnyCPU'
-    configuration: '$(BuildConfiguration)'
 
 - task: DotNetCoreCLI@2
   displayName: Test .net standard 2.0
