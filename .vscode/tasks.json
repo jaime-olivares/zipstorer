@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/test/test.csproj"
+                "${workspaceFolder}/test/ZipStorerTest.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -17,7 +17,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/test/test.csproj"
+                "${workspaceFolder}/test/ZipStorerTest.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -28,7 +28,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/test/test.csproj"
+                "${workspaceFolder}/test/ZipStorerTest.csproj"
             ],
             "problemMatcher": "$tsc"
         }

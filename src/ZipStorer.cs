@@ -166,12 +166,13 @@ namespace System.IO.Compression
         {
             Stream stream = null;
             ZipStorer zip = null;
+
             try
             {
-                stream = (Stream)new FileStream(_filename, FileMode.Open, _access == FileAccess.Read ? FileAccess.Read : FileAccess.ReadWrite);
+                stream = new FileStream(_filename, FileMode.Open, _access == FileAccess.Read ? FileAccess.Read : FileAccess.ReadWrite);
 
                 zip = Open(stream, _access);
-            zip.FileName = _filename;
+                zip.FileName = _filename;
             }
             catch (Exception)
             {
@@ -439,7 +440,7 @@ namespace System.IO.Compression
             // Make sure the parent directory exist
             string path = Path.GetDirectoryName(_filename);
 
-            if (!Directory.Exists(path))
+            if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
             // Check if it is a directory. If so, do nothing.
@@ -447,7 +448,8 @@ namespace System.IO.Compression
                 return true;
 
             bool result;
-            using(var output = new FileStream(_filename, FileMode.Create, FileAccess.Write))
+
+            using(var output = new FileStream(_filename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
             {
                 result = this.ExtractFile(_zfe, output);
             }
@@ -812,6 +814,7 @@ namespace System.IO.Compression
             do
             {
                 bytesRead = await _source.ReadAsync(buffer, 0, buffer.Length);
+                
                 if (bytesRead > 0)
                     await outStream.WriteAsync(buffer, 0, bytesRead);
 
@@ -999,7 +1002,7 @@ namespace System.IO.Compression
                 return false;
             }
 
-            var end = this.ZipFileStream.Seek(-17, SeekOrigin.End);
+            var end = this.ZipFileStream.Seek(-17, SeekOrigin.End); // Will start seeking from -22
 
             try
             {
