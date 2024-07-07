@@ -92,7 +92,7 @@ namespace System.IO.Compression
         // Static CRC32 Table
         private static UInt32[] CrcTable = null;
         // Default filename encoder
-        private static Encoding DefaultEncoding = Encoding.GetEncoding(437);
+        private static Encoding DefaultEncoding;
 #endregion
 
 #region Public methods
@@ -116,6 +116,7 @@ namespace System.IO.Compression
             // Configure CP 437 encoding
             CodePagesEncodingProvider.Instance.GetEncoding(437);
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            DefaultEncoding = Encoding.GetEncoding(437);            
         }
 
         /// <summary>
