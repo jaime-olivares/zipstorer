@@ -1,16 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <Description>A Pure C# class to store files in Zip</Description>
-        <AssemblyTitle>ZipStorer</AssemblyTitle>
-        <VersionPrefix>4.0.0</VersionPrefix>
         <Authors>Jaime Olivares</Authors>
+        <VersionPrefix>4.0.0</VersionPrefix>
         <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
         <AssemblyName>ZipStorer</AssemblyName>
+        <AssemblyTitle>ZipStorer</AssemblyTitle>
         <PackageId>ZipStorer</PackageId>
-        <OutputType>Library</OutputType>
+        <PackageTags>zip;archive;deflate;dotnet</PackageTags>
+        <PackageProjectUrl>https://github.com/jaime-olivares/zipstorer</PackageProjectUrl>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/jaime-olivares/zipstorer</RepositoryUrl>
+        <Configuration>Release</Configuration>
+        <Optimize>true</Optimize>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../LICENSE.md" Pack="true" PackagePath="$(PackageLicenseFile)" />
+        <None Include="../README.md" Pack="true" PackagePath="$(PackageReadmeFile)" />
     </ItemGroup>
 </Project>

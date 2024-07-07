@@ -2,8 +2,9 @@
 A Pure C# class for storing files in Zip format
 
 [![NuGet](https://img.shields.io/nuget/v/ZipStorer.svg)](https://www.nuget.org/packages/ZipStorer/)
-[![github](https://img.shields.io/github/stars/jaime-olivares/zipstorer.svg)]()
-[![Build Status](https://dev.azure.com/jaime-olivares-f/zipstorer/_apis/build/status/jaime-olivares.zipstorer?branchName=master)](https://dev.azure.com/jaime-olivares-f/zipstorer/_build/latest?definitionId=1&branchName=master)
+![downloads](https://img.shields.io/nuget/dt/ZipStorer)
+![github](https://img.shields.io/github/stars/jaime-olivares/ZipStorer?style=flat&color=yellow)
+![build](https://github.com/jaime-olivares/ZipStorer/actions/workflows/main.yml/badge.svg?branch=master)
 
 ZipStorer is a minimalistic cross-platform .net class to create Zip files and store/retrieve files to/from it, by using the Deflate algorithm. No other compression methods supported.
 
@@ -14,11 +15,11 @@ ZipStorer has the following advantages:
 * No Interop calls, increments portability to Mono and other non-Windows platforms
 * Async methods for storing and extracting files 
 * Support for Zip64 (file sizes > 4GB) 
-* UTF8 Encoding support
+* Support for UTF8 and CP 437 Encodings
 * Available as a [nuget package](https://www.nuget.org/packages/ZipStorer/)
 
 ## Using the code
-The ZipStorer class is the unique one needed to create the zip file. It contains a nested structure *(ZipFileEntry)* for collecting each directory entry. The class has been declared inside the System.IO namespace. 
+The ZipStorer class is the unique one needed to create the zip file. It contains a nested structure *(ZipFileEntry)* for collecting each directory entry. The class has been declared inside the System.IO.Compression namespace. 
 
 There is no default constructor. There are two ways to construct a new ZipStorer instance, depending on specific needs: use either the *Create()* or the *Open()* static method. To create a new Zip file, use the *Create()* method like this:
 
@@ -122,13 +123,3 @@ The *_leaveOpen* argument will prevent the stream to be closed after completing 
 Traditionally, the ZIP format supported DOS encoding system (a.k.a. IBM Code Page 437) for filenames in header records, which is a serious limitation for using non-occidental and even some occidental characters. Since 2007, the ZIP format specification was improved to support Unicode's UTF-8 encoding system.
 
 ZipStorer class detects UTF-8 encoding by reading the proper flag in each file's header information. For enforcing filenames to be encoded with UTF-8 system, set the *EncodeUTF8* member of ZipStorer class to true. All new filenames added will be encoded with UTF8. Notice this doesn't affect stored file contents at all. Also be aware that Windows Explorer's embedded Zip format facility does not recognize well the UTF-8 encoding system, as WinZip or WinRAR do.
-
-## .Net Standard support
-Now ZipStorer supports .Net Standard 2.0+ and hence a broad range of platforms. 
-
-If developing with Visual Studio Code, the `csproj` file must reference the [nuget package](https://www.nuget.org/packages/ZipStorer/):
-````xml
-  <ItemGroup>
-    <PackageReference Include="ZipStorer" Version="*" />
-  </ItemGroup>
-````
