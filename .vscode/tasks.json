@@ -9,7 +9,7 @@
                 "build",
                 "${workspaceFolder}/test/ZipStorerTest.csproj"
             ],
-            "problemMatcher": "$tsc"
+            "problemMatcher": "$msCompile"
         },
         {
             "label": "publish",
@@ -19,7 +19,7 @@
                 "publish",
                 "${workspaceFolder}/test/ZipStorerTest.csproj"
             ],
-            "problemMatcher": "$tsc"
+            "problemMatcher": "$msCompile"
         },
         {
             "label": "watch",
@@ -30,7 +30,7 @@
                 "run",
                 "${workspaceFolder}/test/ZipStorerTest.csproj"
             ],
-            "problemMatcher": "$tsc"
+            "problemMatcher": "$msCompile"
         }
     ]
 }

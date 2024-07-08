@@ -2,7 +2,7 @@
     <PropertyGroup>
         <Description>A Pure C# class to store files in Zip</Description>
         <Authors>Jaime Olivares</Authors>
-        <VersionPrefix>4.0.0</VersionPrefix>
+        <VersionPrefix>4.0.1</VersionPrefix>
         <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
         <AssemblyName>ZipStorer</AssemblyName>
         <AssemblyTitle>ZipStorer</AssemblyTitle>
@@ -19,6 +19,12 @@
     <ItemGroup>
         <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
     </ItemGroup>
+
+    <PropertyGroup>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <AnalysisMode>Recommended</AnalysisMode>
+        <NoWarn>CA1805,CA1835</NoWarn>
+    </PropertyGroup>
 
     <PropertyGroup>
         <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
