@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Authors>Jaime Olivares</Authors>
-    <VersionPrefix>4.0.1</VersionPrefix>
-    <TargetFramework>net8.0</TargetFramework>
+    <VersionPrefix>4.0.2-beta1</VersionPrefix>
+    <TargetFramework>net48</TargetFramework>
     <AssemblyName>ZipStorerTest</AssemblyName>
     <PackageId>ZipStorerTest</PackageId>
     <OutputType>exe</OutputType>

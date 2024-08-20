@@ -5,3 +5,5 @@
 **/*.nupkg
 test/sample1.zip
 test/.vs/*
+/.vs
+*.ini

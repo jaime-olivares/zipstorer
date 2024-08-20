@@ -2,8 +2,8 @@
     <PropertyGroup>
         <Description>A Pure C# class to store files in Zip</Description>
         <Authors>Jaime Olivares</Authors>
-        <VersionPrefix>4.0.1</VersionPrefix>
-        <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+        <VersionPrefix>4.0.2-beta1</VersionPrefix>
+        <TargetFrameworks>netstandard2.0;net8.0;net48</TargetFrameworks>
         <AssemblyName>ZipStorer</AssemblyName>
         <AssemblyTitle>ZipStorer</AssemblyTitle>
         <PackageId>ZipStorer</PackageId>
