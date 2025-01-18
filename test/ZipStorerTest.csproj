@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors>Jaime Olivares</Authors>
     <VersionPrefix>4.0.2-beta2</VersionPrefix>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>ZipStorerTest</AssemblyName>
     <PackageId>ZipStorerTest</PackageId>
     <OutputType>exe</OutputType>
