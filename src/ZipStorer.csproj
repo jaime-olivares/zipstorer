@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <Description>A Pure C# class to store files in Zip</Description>
+        <Description>A Pure C# class to handle Zip files</Description>
         <Authors>Jaime Olivares</Authors>
         <VersionPrefix>4.0.2-beta2</VersionPrefix>
         <TargetFrameworks>netstandard2.0;net8.0;net48</TargetFrameworks>
