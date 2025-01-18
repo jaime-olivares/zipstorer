@@ -124,3 +124,8 @@ The *_leaveOpen* argument will prevent the stream to be closed after completing 
 Traditionally, the ZIP format supported DOS encoding system (a.k.a. IBM Code Page 437) for filenames in header records, which is a serious limitation for using non-occidental and even some occidental characters. Since 2007, the ZIP format specification was improved to support Unicode's UTF-8 encoding system.
 
 ZipStorer class detects UTF-8 encoding by reading the proper flag in each file's header information. For enforcing filenames to be encoded with UTF-8 system, set the *EncodeUTF8* member of ZipStorer class to true. All new filenames added will be encoded with UTF8. Notice this doesn't affect stored file contents at all. Also be aware that Windows Explorer's embedded Zip format facility does not recognize well the UTF-8 encoding system, as WinZip or WinRAR do.
+
+## Zip64 compatibility
+This library has been compatible with native macOS zip support for large files. 
+However, it hasn't been compatible with the native Windows zip tools and it rather required the use of third party tools like WinZip or similar.
+At this moment, the support for Zip64 on Windows is in beta test. If you want to test it, look for the latest beta in nuget.
