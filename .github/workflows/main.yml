@@ -36,6 +36,8 @@ jobs:
           sudo apt install -y mono-complete
       - name: Verify Mono Installation
         run: mono --version
+      - name: Restore source
+        run: dotnet build src/*.csproj --configuration Release --framework net8.0
       - name: Run unit tests
         run: dotnet test test/*.csproj --logger:trx --configuration Release --framework net8.0
         env:
