@@ -37,7 +37,7 @@ jobs:
       - name: Verify Mono Installation
         run: mono --version
       - name: Run unit tests
-        run: dotnet test test/*.csproj --logger:trx --configuration Release
+        run: dotnet test test/*.csproj --logger:trx --configuration Release --framework net8.0
         env:
           TEST_TITLE: ZipStorer unit test
         
