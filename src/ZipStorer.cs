@@ -29,31 +29,31 @@ namespace System.IO.Compression
         public class ZipFileEntry
         {
             /// <summary>Compression method</summary>
-            public Compression Method {get; set;}
+            public Compression Method { get; set; }
             /// <summary>Full path and filename as stored in Zip</summary>
-            public string FilenameInZip {get; set;}
+            public string FilenameInZip { get; set; }
             /// <summary>Original file size</summary>
-            public long FileSize {get; set;}
+            public long FileSize { get; set; }
             /// <summary>Compressed file size</summary>
-            public long CompressedSize {get; set;}
+            public long CompressedSize { get; set; }
             /// <summary>Offset of header information inside Zip storage</summary>
-            public long HeaderOffset {get; set;}
+            public long HeaderOffset { get; set; }
             /// <summary>Offset of file inside Zip storage</summary>
-            public long FileOffset {get; set;}
+            public long FileOffset { get; set; }
             /// <summary>Size of header information</summary>
-            public uint HeaderSize {get; set;}
+            public uint HeaderSize { get; set; }
             /// <summary>32-bit checksum of entire file</summary>
-            public uint Crc32 {get; set;}
+            public uint Crc32 { get; set; }
             /// <summary>Last modification time of file</summary>
-            public DateTime ModifyTime {get; set;}
+            public DateTime ModifyTime { get; set; }
             /// <summary>Creation time of file</summary>
-            public DateTime CreationTime {get; set;}
+            public DateTime CreationTime { get; set; }
             /// <summary>Last access time of file</summary>
-            public DateTime AccessTime {get; set;}
+            public DateTime AccessTime { get; set; }
             /// <summary>User comment for file</summary>
-            public string Comment {get; set;}
+            public string Comment { get; set; }
             /// <summary>True if UTF8 encoding for filename and comments, false if default (CP 437)</summary>
-            public bool EncodeUTF8 {get; set;}
+            public bool EncodeUTF8 { get; set; }
 
             /// <summary>Overriden method</summary>
             /// <returns>Filename in Zip</returns>
@@ -61,13 +61,20 @@ namespace System.IO.Compression
             {
                 return this.FilenameInZip;
             }
+
+            public override bool Equals(object obj)
+            {
+                ZipFileEntry o = obj as ZipFileEntry;
+                if (o is null) return false;
+                return this.HeaderOffset == o.HeaderOffset;
+            }
         }
 
 #region Public properties
         /// <summary>True if UTF8 encoding for filename and comments, false if default (CP 437)</summary>
-        public bool EncodeUTF8 {get; set;} = false;
+        public bool EncodeUTF8 { get; set; } = false;
         /// <summary>Force deflate algotithm even if it inflates the stored file. Off by default.</summary>
-        public bool ForceDeflating {get; set;} = false;
+        public bool ForceDeflating { get; set; } = false;
 #endregion
 
 #region Private fields
@@ -570,7 +577,8 @@ namespace System.IO.Compression
 
             try
             {
-                var tempZip = ZipStorer.Create(tempZipName, string.Empty);
+                var tempZip = Create(tempZipName, zip.Comment);
+                tempZip.EncodeUTF8 = zip.EncodeUTF8;
 
                 foreach (ZipFileEntry zfe in fullList)
                 {
@@ -589,7 +597,7 @@ namespace System.IO.Compression
                 File.Delete(zip.FileName);
                 File.Move(tempZipName, zip.FileName);
 
-                zip = ZipStorer.Open(zip.FileName, zip.Access);
+                zip = Open(zip.FileName, zip.Access);
             }
             catch
             {
