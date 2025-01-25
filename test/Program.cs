@@ -177,8 +177,7 @@ namespace ZipStorerTest
         public void Zip64_Test()
         {
             var dir = Path.Combine(Environment.CurrentDirectory, "SampleFiles5");
-            //if (new DriveInfo(dir).AvailableFreeSpace < ((long)12390 * 1024 * 1024)) throw new Exception("Not enough disk space (16.1 GB) for test!");
-            dir = "E:\\ZZZ\\SampleFiles5";
+            if (new DriveInfo(dir).AvailableFreeSpace < ((long)16496 * 1024 * 1024)) throw new Exception("Not enough disk space (16.1 GB) for test!");
             if (Directory.Exists(dir)) Directory.Delete(dir, true);
             if (Directory.Exists(dir + "_2")) Directory.Delete(dir + "_2", true);
             Directory.CreateDirectory(dir);
