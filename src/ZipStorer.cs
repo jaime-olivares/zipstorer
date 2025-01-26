@@ -572,6 +572,9 @@ namespace System.IO.Compression
             // Just remove affected entries from the newly added files list
             zip.Files.RemoveAll(x => zfes.Contains(x));
 
+            // either here if needed or in Create/Open for (file) streams
+            zip.FileName = zip.FileName ?? ((FileStream)zip.ZipFileStream).Name;
+
             // In order to delete we need to create a copy of the zip file excluding the selected items
             var tempZipName = zip.FileName + ".tmp";
 
