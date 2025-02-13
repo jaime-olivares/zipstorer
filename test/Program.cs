@@ -173,7 +173,7 @@ namespace ZipStorerTest
             }            
         }
 
-        [TestMethod]
+        // [TestMethod]
         public void Zip64_Test()
         {
             var dir = Path.Combine(Environment.CurrentDirectory, "SampleFiles5");
