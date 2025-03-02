@@ -11,7 +11,6 @@ ZipStorer is a minimalistic cross-platform .net class to create Zip files and st
 ## Advantages and usage
 ZipStorer has the following advantages:
 
-* It is a short and monolithic C# class that can be embedded as source code in any project 
 * No Interop calls, increments portability to Mono and other non-Windows platforms
 * Async methods for storing and extracting files 
 * Support for Zip64 (file sizes > 4GB) 
@@ -66,10 +65,10 @@ For extracting a file, the zip directory shall be read first, by using the *Read
 ZipStorer zip = ZipStorer.Open(@"c:\data\sample.zip", FileAccess.Read);
 
 // Read the central directory collection
-List<ZipStorer.ZipFileEntry> dir = zip.ReadCentralDir();
+List<ZipFileEntry> dir = zip.ReadCentralDir();
 
 // Look for the desired file
-foreach (ZipStorer.ZipFileEntry entry in dir)
+foreach (ZipFileEntry entry in dir)
 {
     if (Path.GetFileName(entry.FilenameInZip) == "sample.jpg")
     {
@@ -85,11 +84,11 @@ zip.Close();
 Removal of entries in a zip file is a resource-consuming task. The simplest way is to copy all non-removed files into a new zip storage. The *RemoveEntries()* static method will do this exactly and will construct the ZipStorer object again. For the sake of efficiency, *RemoveEntries()* will accept many entry references in a single call, as in the following example:
 
 ````csharp
-List<ZipStorer.ZipFileEntry> removeList = new List<ZipStorer.ZipFileEntry>();
+List<ZipFileEntry> removeList = new List<ZipFileEntry>();
 
 foreach (object sel in listBox4.SelectedItems)
 {
-    removeList.Add((ZipStorer.ZipFileEntry)sel);
+    removeList.Add((ZipFileEntry)sel);
 }
 
 ZipStorer.RemoveEntries(ref zip, removeList);
