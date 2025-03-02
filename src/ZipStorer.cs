@@ -143,11 +143,13 @@ namespace System.IO.Compression
                     stream.Dispose();
                     stream = null;
                 }
+
                 if (zip != null)
                 {
                     zip.Dispose();
                     zip = null;
                 }
+
                 throw;
             }
 
@@ -173,7 +175,7 @@ namespace System.IO.Compression
                 LeaveOpen = leaveOpen
             };
 
-            if (zip.ReadFileInfo())
+            if (zip.readFileInfo())
             {
                 zip.ReadCentralDir();
                 return zip;
@@ -500,6 +502,7 @@ namespace System.IO.Compression
 
                 bytesPending -= (uint)bytesRead;
             }
+
             stream.Flush();
 
             if (zfe.Method == Compression.Deflate)
@@ -568,11 +571,12 @@ namespace System.IO.Compression
                     for (int index = 0; index < list.Count; index++)
                     {
                         var zfe = list[index];
-                        if (zfe.FileOffset == 0) zfe.FileOffset = zip.GetFileOffset(zfe.HeaderOffset);
+                        
+                        if (zfe.FileOffset == 0) 
+                            zfe.FileOffset = zip.getFileOffset(zfe.HeaderOffset);
+                        
                         if (!zfes.Contains(zfe))
                         {
-                            // copy to new zip
-
                             // Copy local header and consider filename and extra field lengths
                             zip.ZipFileStream.Position = zfe.HeaderOffset;
                             var bytes = br.ReadBytes(26);
@@ -587,6 +591,7 @@ namespace System.IO.Compression
                             // Buffered copy
                             byte[] buffer = new byte[65535];
                             long bytesPending = zfe.CompressedSize;
+
                             while (bytesPending > 0)
                             {
                                 int bytesRead = zip.ZipFileStream.Read(buffer, 0, (int)Math.Min(bytesPending, buffer.Length));
@@ -594,6 +599,7 @@ namespace System.IO.Compression
 
                                 bytesPending -= bytesRead;
                             }
+
                             tempZip.ZipFileStream.Flush();
 
                             // Adjust offsets
@@ -1038,6 +1044,7 @@ namespace System.IO.Compression
             string filename1 = filename.Replace('\\', '/');
 
             int pos = filename1.IndexOf(':');
+            
             if (pos >= 0)
                 filename1 = filename1.Remove(0, pos + 1);
 
