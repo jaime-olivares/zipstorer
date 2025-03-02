@@ -332,8 +332,11 @@ namespace System.IO.Compression
         /// <summary>
         /// Read all the file records in the central directory 
         /// </summary>
+        /// <param name="skipFileOffsetCalculation">Delay file offset calculation</param>
         /// <returns>List of all entries in directory</returns>
-        public List<ZipFileEntry> ReadCentralDir()
+        /// <remarks>The calculation of the file offsets can be delayed until files are actually extracted. 
+        /// This results in better performance, if only a few files are extracted.</remarks>
+        public List<ZipFileEntry> ReadCentralDir(bool skipFileOffsetCalculation = false)
         {
             if (this.CentralDirImage == null)
                 throw new InvalidOperationException("Central directory currently does not exist");
@@ -366,7 +369,7 @@ namespace System.IO.Compression
                 {
                     Method = (Compression)method,
                     FilenameInZip = encoder.GetString(CentralDirImage, pointer + 46, filenameSize),
-                    FileOffset = headerOffset == 0xFFFFFFFF ? 0 : getFileOffset(headerOffset),
+                    FileOffset = skipFileOffsetCalculation ? 0 : headerOffset == 0xFFFFFFFF ? 0 : GetFileOffset(headerOffset),
                     FileSize = fileSize,
                     CompressedSize = comprSize,
                     HeaderOffset = headerOffset,
@@ -382,10 +385,10 @@ namespace System.IO.Compression
 
                 if (extraSize > 0)
                 {
-                    zfe.ReadExtraInfo(CentralDirImage, pointer + 46 + filenameSize);
+                    ReadExtraInfo(CentralDirImage, pointer + 46 + filenameSize, zfe);
                     
-                    if (headerOffset == 0xFFFFFFFF) 
-                        zfe.FileOffset = getFileOffset(zfe.HeaderOffset);
+                    if (!skipFileOffsetCalculation && headerOffset == 0xFFFFFFFF) 
+                        zfe.FileOffset = GetFileOffset(zfe.HeaderOffset);
                 }
 
                 result.Add(zfe);
@@ -470,6 +473,8 @@ namespace System.IO.Compression
                 inStream = new DeflateStream(this.ZipFileStream, CompressionMode.Decompress, true);
             else
                 return false;
+
+            if (zfe.FileOffset == 0) zfe.FileOffset = GetFileOffset(zfe.HeaderOffset);
 
             // Buffered copy
             byte[] buffer = new byte[65535];
