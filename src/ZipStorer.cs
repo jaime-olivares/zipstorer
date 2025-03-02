@@ -575,17 +575,17 @@ namespace System.IO.Compression
 
         #region Private methods
         // Calculate the file offset by reading the corresponding local header
-        private long getFileOffset(long _headerOffset)
+        private long getFileOffset(long headerOffset)
         {
             byte[] buffer = new byte[2];
 
-            this.ZipFileStream.Seek(_headerOffset + 26, SeekOrigin.Begin);
+            this.ZipFileStream.Seek(headerOffset + 26, SeekOrigin.Begin);
             this.ZipFileStream.Read(buffer, 0, 2);
             ushort filenameSize = BitConverter.ToUInt16(buffer, 0);
             this.ZipFileStream.Read(buffer, 0, 2);
             ushort extraSize = BitConverter.ToUInt16(buffer, 0);
 
-            return 30 + filenameSize + extraSize + _headerOffset;
+            return 30 + filenameSize + extraSize + headerOffset;
         }
 
         /* Local file header:
@@ -726,7 +726,7 @@ namespace System.IO.Compression
             zipfile comment length          2 bytes
             zipfile comment (variable size)
         */
-        private void writeEndRecord(long _size, long _offset)
+        private void writeEndRecord(long size, long offset)
         {
             long dirOffset = ZipFileStream.Length;
 
@@ -740,8 +740,8 @@ namespace System.IO.Compression
             this.ZipFileStream.Write(BitConverter.GetBytes((UInt32)0), 0, 4); // start of central directory 
             this.ZipFileStream.Write(BitConverter.GetBytes((Int64)Files.Count + ExistingFiles), 0, 8); // total number of entries in the central directory in disk
             this.ZipFileStream.Write(BitConverter.GetBytes((Int64)Files.Count + ExistingFiles), 0, 8); // total number of entries in the central directory
-            this.ZipFileStream.Write(BitConverter.GetBytes(_size), 0, 8); // size of the central directory
-            this.ZipFileStream.Write(BitConverter.GetBytes(_offset), 0, 8); // offset of start of central directory with respect to the starting disk number
+            this.ZipFileStream.Write(BitConverter.GetBytes(size), 0, 8); // size of the central directory
+            this.ZipFileStream.Write(BitConverter.GetBytes(offset), 0, 8); // offset of start of central directory with respect to the starting disk number
 
             // Zip64 end of central directory locator
             this.ZipFileStream.Write(new byte[] { 80, 75, 6, 7 }, 0, 4);
@@ -759,15 +759,15 @@ namespace System.IO.Compression
         }
 
         // Copies all the source file into the zip storage
-        private async Task<Compression> storeAsync(ZipFileEntry _zfe, Stream source)
+        private async Task<Compression> storeAsync(ZipFileEntry zfe, Stream source)
         {
             if (source.Length == 0)
             {
-                _zfe.FileSize = 0;
-                _zfe.CompressedSize = 0;
-                _zfe.Crc32 = 0;
-                _zfe.Method = Compression.Store;
-                return _zfe.Method;
+                zfe.FileSize = 0;
+                zfe.CompressedSize = 0;
+                zfe.Crc32 = 0;
+                zfe.Method = Compression.Store;
+                return zfe.Method;
             }
 
             byte[] buffer = new byte[16384];
@@ -778,12 +778,12 @@ namespace System.IO.Compression
             long posStart = this.ZipFileStream.Position;
             long sourceStart = source.CanSeek ? source.Position : 0;
 
-            if (_zfe.Method == Compression.Store)
+            if (zfe.Method == Compression.Store)
                 outStream = this.ZipFileStream;
             else
                 outStream = new DeflateStream(this.ZipFileStream, CompressionMode.Compress, true);
 
-            _zfe.Crc32 = 0 ^ 0xffffffff;
+            zfe.Crc32 = 0 ^ 0xffffffff;
 
             do
             {
@@ -794,7 +794,7 @@ namespace System.IO.Compression
 
                 for (uint i = 0; i < bytesRead; i++)
                 {
-                    _zfe.Crc32 = ZipStorer.CrcTable[(_zfe.Crc32 ^ buffer[i]) & 0xFF] ^ (_zfe.Crc32 >> 8);
+                    zfe.Crc32 = ZipStorer.CrcTable[(zfe.Crc32 ^ buffer[i]) & 0xFF] ^ (zfe.Crc32 >> 8);
                 }
 
                 totalRead += (uint)bytesRead;
@@ -802,26 +802,26 @@ namespace System.IO.Compression
 
             outStream.Flush();
 
-            if (_zfe.Method == Compression.Deflate)
+            if (zfe.Method == Compression.Deflate)
                 outStream.Dispose();
 
-            _zfe.Crc32 ^= 0xFFFFFFFF;
-            _zfe.FileSize = (long)totalRead;
-            _zfe.CompressedSize = this.ZipFileStream.Position - posStart;
+            zfe.Crc32 ^= 0xFFFFFFFF;
+            zfe.FileSize = (long)totalRead;
+            zfe.CompressedSize = this.ZipFileStream.Position - posStart;
 
             // Verify for real compression
-            if (_zfe.Method == Compression.Deflate && !this.ForceDeflating && source.CanSeek && _zfe.CompressedSize > _zfe.FileSize)
+            if (zfe.Method == Compression.Deflate && !this.ForceDeflating && source.CanSeek && zfe.CompressedSize > zfe.FileSize)
             {
                 // Start operation again with Store algorithm
-                _zfe.Method = Compression.Store;
+                zfe.Method = Compression.Store;
                 this.ZipFileStream.Position = posStart;
                 this.ZipFileStream.SetLength(posStart);
                 source.Position = sourceStart;
 
-                return await this.storeAsync(_zfe, source);
+                return await this.storeAsync(zfe, source);
             }
 
-            return _zfe.Method;
+            return zfe.Method;
         }
 
         /* CRC32 algorithm
@@ -832,30 +832,30 @@ namespace System.IO.Compression
           If bit 3 of the general purpose flag is set, this field is set to zero in the local header and the correct
           value is put in the data descriptor and in the central directory.
         */
-        private void updateCrcAndSizes(ZipFileEntry _zfe)
+        private void updateCrcAndSizes(ZipFileEntry zfe)
         {
             long lastPos = this.ZipFileStream.Position;  // remember position
 
-            this.ZipFileStream.Position = _zfe.HeaderOffset + 4;
-            this.ZipFileStream.Write(BitConverter.GetBytes((ushort)(_zfe.IsZip64ExtNeeded(3) ? 45 : _zfe.Method == Compression.Deflate ? 20 : 10)), 0, 2);  // version needed
+            this.ZipFileStream.Position = zfe.HeaderOffset + 4;
+            this.ZipFileStream.Write(BitConverter.GetBytes((ushort)(zfe.IsZip64ExtNeeded(3) ? 45 : zfe.Method == Compression.Deflate ? 20 : 10)), 0, 2);  // version needed
 
-            this.ZipFileStream.Position = _zfe.HeaderOffset + 8;
-            this.ZipFileStream.Write(BitConverter.GetBytes((ushort)_zfe.Method), 0, 2);  // zipping method
+            this.ZipFileStream.Position = zfe.HeaderOffset + 8;
+            this.ZipFileStream.Write(BitConverter.GetBytes((ushort)zfe.Method), 0, 2);  // zipping method
 
-            var zip64Sizes = updateLocalHeaderExtraFields(_zfe);
+            var zip64Sizes = updateLocalHeaderExtraFields(zfe);
 
-            this.ZipFileStream.Position = _zfe.HeaderOffset + 14;
+            this.ZipFileStream.Position = zfe.HeaderOffset + 14;
 
-            this.ZipFileStream.Write(BitConverter.GetBytes(_zfe.Crc32), 0, 4);  // Update CRC
-            this.ZipFileStream.Write(BitConverter.GetBytes(zip64Sizes ? 0xFFFFFFFF : _zfe.CompressedSize), 0, 4);  // Compressed size
-            this.ZipFileStream.Write(BitConverter.GetBytes(zip64Sizes ? 0xFFFFFFFF : _zfe.FileSize), 0, 4);  // Uncompressed size
+            this.ZipFileStream.Write(BitConverter.GetBytes(zfe.Crc32), 0, 4);  // Update CRC
+            this.ZipFileStream.Write(BitConverter.GetBytes(zip64Sizes ? 0xFFFFFFFF : zfe.CompressedSize), 0, 4);  // Compressed size
+            this.ZipFileStream.Write(BitConverter.GetBytes(zip64Sizes ? 0xFFFFFFFF : zfe.FileSize), 0, 4);  // Uncompressed size
 
             this.ZipFileStream.Position = lastPos;  // restore position
         }
 
-        private bool updateLocalHeaderExtraFields(ZipFileEntry _zfe)
+        private bool updateLocalHeaderExtraFields(ZipFileEntry zfe)
         {
-            this.ZipFileStream.Position = _zfe.HeaderOffset + 26;
+            this.ZipFileStream.Position = zfe.HeaderOffset + 26;
 
             bool zip64Sizes = false;
             var buffer = new byte[4];
@@ -878,9 +878,9 @@ namespace System.IO.Compression
                     if (extraId == 0x0001) // ZIP64 Information
                     {
                         zip64Sizes = true;
-                        this.ZipFileStream.Position = _zfe.HeaderOffset + 30 + fileNameLength + 4 + pos;
-                        this.ZipFileStream.Write(BitConverter.GetBytes((ulong)_zfe.FileSize), 0, 8);
-                        this.ZipFileStream.Write(BitConverter.GetBytes((ulong)_zfe.CompressedSize), 0, 8);
+                        this.ZipFileStream.Position = zfe.HeaderOffset + 30 + fileNameLength + 4 + pos;
+                        this.ZipFileStream.Write(BitConverter.GetBytes((ulong)zfe.FileSize), 0, 8);
+                        this.ZipFileStream.Write(BitConverter.GetBytes((ulong)zfe.CompressedSize), 0, 8);
                     }
                     pos += (int)length + 4;
                 }
