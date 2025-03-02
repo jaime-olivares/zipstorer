@@ -369,7 +369,7 @@ namespace System.IO.Compression
                 {
                     Method = (Compression)method,
                     FilenameInZip = encoder.GetString(CentralDirImage, pointer + 46, filenameSize),
-                    FileOffset = skipFileOffsetCalculation ? 0 : headerOffset == 0xFFFFFFFF ? 0 : GetFileOffset(headerOffset),
+                    FileOffset = skipFileOffsetCalculation ? 0 : headerOffset == 0xFFFFFFFF ? 0 : this.getFileOffset(headerOffset),
                     FileSize = fileSize,
                     CompressedSize = comprSize,
                     HeaderOffset = headerOffset,
@@ -385,10 +385,10 @@ namespace System.IO.Compression
 
                 if (extraSize > 0)
                 {
-                    ReadExtraInfo(CentralDirImage, pointer + 46 + filenameSize, zfe);
+                    zfe.ReadExtraInfo(CentralDirImage, pointer + 46 + filenameSize);
                     
                     if (!skipFileOffsetCalculation && headerOffset == 0xFFFFFFFF) 
-                        zfe.FileOffset = GetFileOffset(zfe.HeaderOffset);
+                        zfe.FileOffset = this.getFileOffset(zfe.HeaderOffset);
                 }
 
                 result.Add(zfe);
@@ -474,7 +474,7 @@ namespace System.IO.Compression
             else
                 return false;
 
-            if (zfe.FileOffset == 0) zfe.FileOffset = GetFileOffset(zfe.HeaderOffset);
+            if (zfe.FileOffset == 0) zfe.FileOffset = this.getFileOffset(zfe.HeaderOffset);
 
             // Buffered copy
             byte[] buffer = new byte[65535];
