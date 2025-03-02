@@ -3,7 +3,6 @@ using System.Collections;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
-using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ZipStorerTest
@@ -199,7 +198,7 @@ namespace ZipStorerTest
             ZipStorer zip1 = ZipStorer.Open(sampleFile4a, FileAccess.ReadWrite);
             var entries = zip1.ReadCentralDir();
             var entry = entries[1];
-            ZipStorer.RemoveEntries(ref zip1, new System.Collections.Generic.List<ZipStorer.ZipFileEntry> { entry });
+            ZipStorer.RemoveEntries(ref zip1, new System.Collections.Generic.List<ZipFileEntry> { entry });
             zip1.Close();
 
             using (ZipStorer zip = ZipStorer.Create(sampleFile4b))
