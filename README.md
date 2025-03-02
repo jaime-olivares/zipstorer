@@ -47,11 +47,11 @@ using (ZipStorer zip = ZipStorer.Create(filename, comment))
 For adding files into an opened zip storage, there are two available methods:
 
 ````csharp
-public void AddFile(ZipStorer.Compress _method, string _pathname, string _filenameInZip, string _comment);
-public void AddStream(ZipStorer.Compress _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment);
+public void AddFile(ZipStorer.Compress method, string pathname, string filenameInZip, string comment);
+public void AddStream(ZipStorer.Compress method, string filenameInZip, Stream source, DateTime modTime, string comment);
 ````
     
-The first method allows adding an existing file to the storage. The first argument receives the compression method; it can be *Store* or *Deflate* enum values. The second argument admits the physical path name, the third one allows to change the path or file name to be stored in the Zip, and the last argument inserts a comment in the storage. Notice that the folder path in the *_pathname* argument is not saved in the Zip file. Use the *_filenameInZip* argument instead to specify the folder path and filename. It can be expressed with both slashes or backslashes.
+The first method allows adding an existing file to the storage. The first argument receives the compression method; it can be *Store* or *Deflate* enum values. The second argument admits the physical path name, the third one allows to change the path or file name to be stored in the Zip, and the last argument inserts a comment in the storage. Notice that the folder path in the *pathname* argument is not saved in the Zip file. Use the *filenameInZip* argument instead to specify the folder path and filename. It can be expressed with both slashes or backslashes.
 
 The second method allows adding data from any kind of stream object derived from the *System.IO.Stream class*. Internally, the first method opens a *FileStream* and calls the second method.
 
@@ -99,24 +99,24 @@ The current release of ZipStorer supports both files and streams for creating an
 
 ````csharp
     // File-oriented methods:
-    public static ZipStorer Create(string _filename, string _comment);
-    public static ZipStorer Open(string _filename, FileAccess _access);
-    public ZipFileEntry AddFile(Compression _method, string _pathname, string _filenameInZip, string _comment);
-    public bool ExtractFile(ZipFileEntry _zfe, string _filename);
-    public static bool RemoveEntries(ref ZipStorer _zip, List<zipfileentry> _zfes);  // No stream-oriented equivalent
+    public static ZipStorer Create(string filename, string comment);
+    public static ZipStorer Open(string filename, FileAccess access);
+    public ZipFileEntry AddFile(Compression method, string pathname, string filenameInZip, string comment);
+    public bool ExtractFile(ZipFileEntry zfe, string filename);
+    public static bool RemoveEntries(ref ZipStorer zip, List<zipfileentry> zfes);
 
     // Stream-oriented methods:
-    public static ZipStorer Create(Stream _stream, string _comment, bool _leaveOpen);
-    public static ZipStorer Open(Stream _stream, FileAccess _access, bool _leaveOpen);
-    public ZipFileEntry AddStream(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment);
-    public bool ExtractFile(ZipFileEntry _zfe, Stream _stream);
+    public static ZipStorer Create(Stream stream, string comment, bool leaveOpen);
+    public static ZipStorer Open(Stream stream, FileAccess access, bool leaveOpen);
+    public ZipFileEntry AddStream(Compression method, string filenameInZip, Stream source, DateTime modTime, string comment);
+    public bool ExtractFile(ZipFileEntry zfe, Stream stream);
 
     // Async methods
-    public ZipFileEntry AddStreamAsync(Compression _method, string _filenameInZip, Stream _source, DateTime _modTime, string _comment);
-    public async Task<bool> ExtractFileAsync(ZipFileEntry _zfe, Stream _stream);
+    public async Task<ZipFileEntry> AddStreamAsync(Compression method, string filenameInZip, Stream source, DateTime modTime, string comment)
+    public async Task<bool> ExtractFileAsync(ZipFileEntry zfe, Stream stream);
 ````
 
-The *_leaveOpen* argument will prevent the stream to be closed after completing the generation of the zip package.
+The *leaveOpen* argument will prevent the stream to be closed after completing the generation of the zip package.
 
 ## Filename encoding
 Traditionally, the ZIP format supported DOS encoding system (a.k.a. IBM Code Page 437) for filenames in header records, which is a serious limitation for using non-occidental and even some occidental characters. Since 2007, the ZIP format specification was improved to support Unicode's UTF-8 encoding system.
