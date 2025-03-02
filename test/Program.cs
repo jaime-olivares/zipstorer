@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -19,6 +20,8 @@ namespace ZipStorerTest
 
         const string sampleFile1 = "sample1.zip";
         const string sampleFile3 = "sample3.zip";
+        const string sampleFile4a = "sample4a.zip";
+        const string sampleFile4b = "sample4b.zip";
         const string sampleFile5 = "sample5.zip";
         const string sampleFile = "sample.zip";
         private static byte[] buffer;
@@ -171,6 +174,55 @@ namespace ZipStorerTest
                 Assert.IsTrue(dir[0].Method == ZipStorer.Compression.Deflate);
                 Assert.IsTrue(dir[0].CompressedSize < buffer.Length);
             }            
+        }
+
+        [TestMethod]
+        public void RemoveEntries_Test()
+        {
+            using (ZipStorer zip = ZipStorer.Create(sampleFile4a))
+            {
+                using (var mem = new MemoryStream(buffer))
+                {
+                    zip.AddStream(ZipStorer.Compression.Deflate, "Lorem1.txt", mem, baseDate);
+                }
+                using (var mem = new MemoryStream(buffer))
+                {
+                    zip.AddStream(ZipStorer.Compression.Deflate, "Lorem2.txt", mem, baseDate);
+                }
+                using (var mem = new MemoryStream(buffer))
+                {
+                    zip.AddStream(ZipStorer.Compression.Deflate, "Lorem3.txt", mem, baseDate);
+                }
+            }
+            {
+                var zip = ZipStorer.Open(sampleFile4a, FileAccess.ReadWrite);
+                var entries = zip.ReadCentralDir();
+                var entry = entries[1];
+                ZipStorer.RemoveEntries(ref zip, new System.Collections.Generic.List<ZipStorer.ZipFileEntry> { entry });
+                zip.Close();
+            }
+            using (ZipStorer zip = ZipStorer.Create(sampleFile4b))
+            {
+                using (var mem = new MemoryStream(buffer))
+                {
+                    zip.AddStream(ZipStorer.Compression.Deflate, "Lorem1.txt", mem, baseDate);
+                }
+                using (var mem = new MemoryStream(buffer))
+                {
+                    zip.AddStream(ZipStorer.Compression.Deflate, "Lorem3.txt", mem, baseDate);
+                }
+            }
+            using (var stream1 = new FileStream(sampleFile4a, FileMode.Open, FileAccess.Read))
+            using (var stream2 = new FileStream(sampleFile4b, FileMode.Open, FileAccess.Read))
+            {
+                Assert.AreEqual(stream1.Length, stream2.Length);
+
+                var hash1 = MD5.HashData(stream1);
+                var hash2 = MD5.HashData(stream2);
+
+                Assert.AreEqual(hash1.Length, hash2.Length);
+                Assert.IsTrue(hash1.SequenceEqual(hash2));
+            }
         }
 
         // [TestMethod]

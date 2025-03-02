@@ -61,6 +61,13 @@ namespace System.IO.Compression
             {
                 return this.FilenameInZip;
             }
+
+            public override bool Equals(object obj)
+            {
+                ZipFileEntry o = obj as ZipFileEntry;
+                if (o is null) return false;
+                return this.HeaderOffset == o.HeaderOffset;
+            }
         }
 
         #region Public properties
@@ -571,7 +578,8 @@ namespace System.IO.Compression
 
             try
             {
-                var tempZip = ZipStorer.Create(tempZipName, string.Empty);
+                var tempZip = Create(tempZipName, zip.Comment);
+                tempZip.EncodeUTF8 = zip.EncodeUTF8;
 
                 foreach (ZipFileEntry zfe in fullList)
                 {
@@ -590,7 +598,7 @@ namespace System.IO.Compression
                 File.Delete(zip.FileName);
                 File.Move(tempZipName, zip.FileName);
 
-                zip = ZipStorer.Open(zip.FileName, zip.Access);
+                zip = Open(zip.FileName, zip.Access);
             }
             catch
             {
