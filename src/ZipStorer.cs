@@ -32,7 +32,9 @@ namespace System.IO.Compression
 
         #region Private fields
         // List of files to store
-        private List<ZipFileEntry> Files = new List<ZipFileEntry>();
+        private readonly List<ZipFileEntry> Files = new List<ZipFileEntry>();
+        // List of files in Central Directory
+        private readonly List<ZipFileEntry> CentralDirectoryFiles = new List<ZipFileEntry>();
         // Filename of storage file
         private string FileName;
         // Stream object of storage file
@@ -171,8 +173,11 @@ namespace System.IO.Compression
                 LeaveOpen = leaveOpen
             };
 
-            if (zip.readFileInfo())
+            if (zip.ReadFileInfo())
+            {
+                zip.ReadCentralDir();
                 return zip;
+            }
 
             if (!leaveOpen)
                 zip.Close();
@@ -338,10 +343,12 @@ namespace System.IO.Compression
         /// This results in better performance, if only a few files are extracted.</remarks>
         public List<ZipFileEntry> ReadCentralDir(bool skipFileOffsetCalculation = false)
         {
+            var lastPos = this.ZipFileStream.Position;
+
             if (this.CentralDirImage == null)
                 throw new InvalidOperationException("Central directory currently does not exist");
 
-            List<ZipFileEntry> result = new List<ZipFileEntry>();
+            CentralDirectoryFiles.Clear();
 
             for (int pointer = 0; pointer < this.CentralDirImage.Length;)
             {
@@ -363,11 +370,14 @@ namespace System.IO.Compression
                 uint headerSize = (uint)(46 + filenameSize + extraSize + commentSize);
                 DateTime modifyTimeDT = ZipDate.DosTimeToDateTime(modifyTime) ?? DateTime.Now;
 
+                EncodeUTF8 |= encodeUTF8;
                 Encoding encoder = encodeUTF8 ? Encoding.UTF8 : DefaultEncoding;
 
                 ZipFileEntry zfe = new ZipFileEntry()
                 {
                     Method = (Compression)method,
+                    EncodeUTF8 = encodeUTF8,
+                    Comment = string.Empty,
                     FilenameInZip = encoder.GetString(CentralDirImage, pointer + 46, filenameSize),
                     FileOffset = skipFileOffsetCalculation ? 0 : headerOffset == 0xFFFFFFFF ? 0 : this.getFileOffset(headerOffset),
                     FileSize = fileSize,
@@ -391,11 +401,13 @@ namespace System.IO.Compression
                         zfe.FileOffset = this.getFileOffset(zfe.HeaderOffset);
                 }
 
-                result.Add(zfe);
+                CentralDirectoryFiles.Add(zfe);
                 pointer += 46 + filenameSize + extraSize + commentSize;
             }
 
-            return result;
+            this.ZipFileStream.Position = lastPos;
+
+            return CentralDirectoryFiles;
         }
 
         /// <summary>
@@ -532,25 +544,69 @@ namespace System.IO.Compression
             if (!(zip.ZipFileStream is FileStream))
                 throw new InvalidOperationException("RemoveEntries is allowed just over streams of type FileStream");
 
-            //Get full list of entries
-            var fullList = zip.ReadCentralDir();
+            // Just remove affected entries from the newly added files list
+            zip.Files.RemoveAll(x => zfes.Contains(x));
 
-            //In order to delete we need to create a copy of the zip file excluding the selected items
-            var tempZipName = Path.GetTempFileName();
-            var tempEntryName = Path.GetTempFileName();
+            // either here if needed or in Create/Open for (file) streams
+            zip.FileName = zip.FileName ?? ((FileStream)zip.ZipFileStream).Name;
+
+            // In order to delete we need to create a copy of the zip file excluding the selected items
+            var tempZipName = zip.FileName + ".tmp";
 
             try
             {
                 var tempZip = Create(tempZipName, zip.Comment);
                 tempZip.EncodeUTF8 = zip.EncodeUTF8;
 
-                foreach (ZipFileEntry zfe in fullList)
+                var br = new BinaryReader(zip.ZipFileStream);
+                long offset = 0;
+
+                for (int listIndex = 0; listIndex <= 1; listIndex++)
                 {
-                    if (!zfes.Contains(zfe))
+                    var list = listIndex == 0 ? zip.CentralDirectoryFiles : zip.Files;
+
+                    for (int index = 0; index < list.Count; index++)
                     {
-                        if (zip.ExtractFile(zfe, tempEntryName))
+                        var zfe = list[index];
+                        if (zfe.FileOffset == 0) zfe.FileOffset = zip.GetFileOffset(zfe.HeaderOffset);
+                        if (!zfes.Contains(zfe))
                         {
-                            tempZip.AddFile(zfe.Method, tempEntryName, zfe.FilenameInZip, zfe.Comment);
+                            // copy to new zip
+
+                            // Copy local header and consider filename and extra field lengths
+                            zip.ZipFileStream.Position = zfe.HeaderOffset;
+                            var bytes = br.ReadBytes(26);
+                            tempZip.ZipFileStream.Write(bytes, 0, bytes.Length);
+                            var filenameLength = br.ReadInt16();
+                            var extraFieldLength = br.ReadInt16();
+                            tempZip.ZipFileStream.Write(BitConverter.GetBytes((ushort)filenameLength), 0, 2);
+                            tempZip.ZipFileStream.Write(BitConverter.GetBytes((ushort)extraFieldLength), 0, 2);
+                            bytes = br.ReadBytes(filenameLength + extraFieldLength);
+                            tempZip.ZipFileStream.Write(bytes, 0, bytes.Length);
+
+                            // Buffered copy
+                            byte[] buffer = new byte[65535];
+                            long bytesPending = zfe.CompressedSize;
+                            while (bytesPending > 0)
+                            {
+                                int bytesRead = zip.ZipFileStream.Read(buffer, 0, (int)Math.Min(bytesPending, buffer.Length));
+                                tempZip.ZipFileStream.Write(buffer, 0, bytesRead);
+
+                                bytesPending -= bytesRead;
+                            }
+                            tempZip.ZipFileStream.Flush();
+
+                            // Adjust offsets
+                            zfe.HeaderOffset += offset;
+                            zfe.FileOffset += offset;
+
+                            // Add to new files list
+                            tempZip.Files.Add(zfe);
+                        }
+                        else
+                        {
+                            // offset correction
+                            offset -= (zfe.FileOffset - zfe.HeaderOffset) + zfe.CompressedSize;
                         }
                     }
                 }
@@ -571,8 +627,6 @@ namespace System.IO.Compression
             {
                 if (File.Exists(tempZipName))
                     File.Delete(tempZipName);
-                if (File.Exists(tempEntryName))
-                    File.Delete(tempEntryName);
             }
             return true;
         }
