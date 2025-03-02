@@ -22,6 +22,7 @@ namespace ZipStorerTest
         const string sampleFile3 = "sample3.zip";
         const string sampleFile4a = "sample4a.zip";
         const string sampleFile4b = "sample4b.zip";
+        const string sampleFile5 = "sample5.zip";
         const string sampleFile = "sample.zip";
         private static byte[] buffer;
 
@@ -222,6 +223,85 @@ namespace ZipStorerTest
                 Assert.AreEqual(hash1.Length, hash2.Length);
                 Assert.IsTrue(hash1.SequenceEqual(hash2));
             }
+        }
+
+        // [TestMethod]
+        public void Zip64_Test()
+        {
+            var dir = Path.Combine(Environment.CurrentDirectory, "SampleFiles5");
+            if (new DriveInfo(dir).AvailableFreeSpace < ((long)16496 * 1024 * 1024)) throw new Exception("Not enough disk space (16.1 GB) for test!");
+            if (Directory.Exists(dir)) Directory.Delete(dir, true);
+            if (Directory.Exists(dir + "_2")) Directory.Delete(dir + "_2", true);
+            Directory.CreateDirectory(dir);
+            Directory.CreateDirectory(dir + "_2");
+            File.Delete(Path.Combine(dir, "..", sampleFile5));
+
+            // generate three test files
+            // standard text 
+            File.WriteAllBytes(Path.Combine(dir, "File1.txt"), buffer);
+            var txtBuffer = new byte[65538];
+            using (var mem = new MemoryStream(txtBuffer))
+            using (var bw = new BinaryWriter(mem, Encoding.ASCII))
+            {
+                for (int i = 0; i < 5958; i++)
+                {
+                    bw.Write(Encoding.ASCII.GetBytes("1234567890\n"));
+                }
+            }
+            // one larger than 0xFFFFFFFF and one with 0xFFFFFFFE bytes
+            for (int n = 2; n <= 3; n++)
+            {
+                using (var fs = new FileStream(Path.Combine(dir, $"File{n}.txt"), FileMode.Create))
+                {
+                    for (var i = 0; i < (n == 2 ? 66000 : 65534); i++)
+                    {
+                        fs.Write(txtBuffer, 0, txtBuffer.Length);
+                    }
+                    if (n == 3) fs.Write(txtBuffer, 0, 2);
+                }
+            }
+
+            // zip them
+            using (ZipStorer zip = ZipStorer.Create(Path.Combine(dir, "..", sampleFile5)))
+            {
+                zip.AddFile(ZipStorer.Compression.Deflate, Path.Combine(dir, "File1.txt"), "File1.txt");  // normal file
+                zip.AddFile(ZipStorer.Compression.Deflate, Path.Combine(dir, "File2.txt"), "File2.txt");  // Zip64 file size, normal compressed size and offset
+                zip.AddFile(ZipStorer.Compression.Store, Path.Combine(dir, "File3.txt"), "File3.txt");    // normal file size and offset
+                zip.AddFile(ZipStorer.Compression.Deflate, Path.Combine(dir, "File2.txt"), "File4.txt");  // Zip64 file size and offset
+            }
+
+            // unzip and compare them
+            using (ZipStorer zip = ZipStorer.Open(Path.Combine(dir, "..", sampleFile5), FileAccess.Read))
+            {
+                var entries = zip.ReadCentralDir();
+                for (var n = 0; n < 4; n++)
+                {
+                    zip.ExtractFile(entries[n], Path.Combine(dir + "_2", entries[n].FilenameInZip));
+                    using (var fs1 = new FileStream(Path.Combine(dir, entries[n == 3 ? 1 : n].FilenameInZip), FileMode.Open))
+                    using (var fs2 = new FileStream(Path.Combine(dir + "_2", entries[n].FilenameInZip), FileMode.Open))
+                    {
+                        Assert.IsTrue(StreamsAreEqual(fs1, fs2));
+                    }
+                    File.Delete(Path.Combine(dir + "_2", entries[n].FilenameInZip));
+                }
+            }
+        }
+
+        private bool StreamsAreEqual(Stream s1, Stream s2)
+        {
+            if (s1.Length != s2.Length) return false;
+
+            var bytes1 = new byte[65536];
+            var bytes2 = new byte[65536];
+            long bytesLeft = s1.Length;
+            while (bytesLeft > 0)
+            {
+                var bytesRead1 = s1.Read(bytes1, 0, bytes1.Length);
+                var bytesRead2 = s2.Read(bytes2, 0, bytes2.Length);
+                if (!bytes1.SequenceEqual(bytes2)) return false;
+                bytesLeft -= bytesRead1;
+            }
+            return true;
         }
 
         public void createSampleFile()
