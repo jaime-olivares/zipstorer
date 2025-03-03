@@ -49,8 +49,6 @@ namespace System.IO.Compression
         private FileAccess Access;
         // Dispose control
         private bool IsDisposed = false;
-        // Static CRC32 Table
-        private static UInt32[] CrcTable = null;
         // Default filename encoder
         private static Encoding DefaultEncoding;
         // leave the stream open after the ZipStorer object is disposed
@@ -60,24 +58,11 @@ namespace System.IO.Compression
         #region Public static methods
         static ZipStorer()
         {
-            // Generate CRC32 table
-            CrcTable = new UInt32[256];
-            for (int i = 0; i < CrcTable.Length; i++)
-            {
-                UInt32 c = (UInt32)i;
-                for (int j = 0; j < 8; j++)
-                {
-                    if ((c & 1) != 0)
-                        c = 3988292384 ^ (c >> 1);
-                    else
-                        c >>= 1;
-                }
-                CrcTable[i] = c;
-            }
-
             // Configure CP 437 encoding
+#if NET5_0_OR_GREATER
             CodePagesEncodingProvider.Instance.GetEncoding(437);
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
             DefaultEncoding = Encoding.GetEncoding(437);
         }
 
@@ -857,10 +842,7 @@ namespace System.IO.Compression
                 if (bytesRead > 0)
                     await outStream.WriteAsync(buffer, 0, bytesRead);
 
-                for (uint i = 0; i < bytesRead; i++)
-                {
-                    zfe.Crc32 = ZipStorer.CrcTable[(zfe.Crc32 ^ buffer[i]) & 0xFF] ^ (zfe.Crc32 >> 8);
-                }
+                zfe.Crc32 = ZipCrc32.UpdateCRC(zfe.Crc32, buffer, bytesRead);
 
                 totalRead += (uint)bytesRead;
             } while (bytesRead > 0);
@@ -889,14 +871,6 @@ namespace System.IO.Compression
             return zfe.Method;
         }
 
-        /* CRC32 algorithm
-          The 'magic number' for the CRC is 0xdebb20e3.  
-          The proper CRC pre and post conditioning is used, meaning that the CRC register is
-          pre-conditioned with all ones (a starting value of 0xffffffff) and the value is post-conditioned by
-          taking the one's complement of the CRC residual.
-          If bit 3 of the general purpose flag is set, this field is set to zero in the local header and the correct
-          value is put in the data descriptor and in the central directory.
-        */
         private void updateCrcAndSizes(ZipFileEntry zfe)
         {
             long lastPos = this.ZipFileStream.Position;  // remember position
