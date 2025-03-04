@@ -8,6 +8,11 @@ A Pure C# class for storing files in Zip format
 
 ZipStorer is a minimalistic cross-platform .net class to create Zip files and store/retrieve files to/from it, by using the Deflate algorithm. No other compression methods supported.
 
+## :warning: Breaking changes
+
+- Since version 4.1, as part of a major reorganization of the source code, `ZipFileEntry` is no longer a nested class inside `ZipStorer`.
+Therefore, you should not prefix it with `ZipStorer.` anymore.
+
 ## Advantages and usage
 ZipStorer has the following advantages:
 
