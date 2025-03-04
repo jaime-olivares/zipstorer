@@ -1,6 +1,8 @@
 // ZipStorer, by Jaime Olivares
 // Website: http://github.com/jaime-olivares/zipstorer
 
+using System.Security;
+
 namespace System.IO.Compression
 {
     /// <summary>
@@ -30,6 +32,8 @@ namespace System.IO.Compression
         public DateTime CreationTime { get; set; }
         /// <summary>Last access time of file</summary>
         public DateTime AccessTime { get; set; }
+        /// <summaryEncryption password</summary>
+        public SecureString Password { get; set; }
         /// <summary>User comment for file</summary>
         public string Comment { get; set; }
         /// <summary>True if UTF8 encoding for filename and comments, false if default (CP 437)</summary>
@@ -80,11 +84,13 @@ namespace System.IO.Compression
             if (offset != 0) 
                 offset += 4;
 
-            byte[] buffer = new byte[offset + 36];
+            int bufferSize = offset + 36 + (this.IsEncrypted() ? 11 : 0);
+
+            byte[] buffer = new byte[bufferSize];
 
             if (offset > 0)
             {
-                BitConverter.GetBytes((ushort)0x0001).CopyTo(buffer, 0); // ZIP64 Information
+                BitConverter.GetBytes((ushort)0x0001).CopyTo(buffer, 0); // Extra ZIP64 Information
                 BitConverter.GetBytes((ushort)(offset - 4)).CopyTo(buffer, 2); // Length
                 BitConverter.GetBytes(zip64FileSize ? this.FileSize : zip64CompSize ? this.CompressedSize : this.HeaderOffset).CopyTo(buffer, 4);
                 
@@ -95,7 +101,7 @@ namespace System.IO.Compression
                     BitConverter.GetBytes(this.HeaderOffset).CopyTo(buffer, 20);
             }
 
-            BitConverter.GetBytes((ushort)0x000A).CopyTo(buffer, offset); // NTFS FileTime
+            BitConverter.GetBytes((ushort)0x000A).CopyTo(buffer, offset); // Extra NTFS FileTime
             BitConverter.GetBytes((ushort)32).CopyTo(buffer, offset + 2); // Length
             BitConverter.GetBytes((uint)0).CopyTo(buffer, offset + 4); // Reserved
             BitConverter.GetBytes((ushort)0x0001).CopyTo(buffer, offset + 8); // Tag 1
@@ -104,7 +110,23 @@ namespace System.IO.Compression
             BitConverter.GetBytes(this.AccessTime.ToFileTime()).CopyTo(buffer, offset + 20); // ATime
             BitConverter.GetBytes(this.CreationTime.ToFileTime()).CopyTo(buffer, offset + 28); // CTime
 
+            if (this.IsEncrypted())
+            {
+                offset += 36; 
+                BitConverter.GetBytes((ushort)0x9901).CopyTo(buffer, offset); // Extra AES field
+                BitConverter.GetBytes((ushort)7).CopyTo(buffer, offset + 2); // Length
+                BitConverter.GetBytes((ushort)0x0001).CopyTo(buffer, offset + 4); // AES version
+                BitConverter.GetBytes((ushort)0x4145).CopyTo(buffer, offset + 6); // Vendor ID
+                buffer[8] = 3; // AES strength
+                BitConverter.GetBytes((ushort)this.Method).CopyTo(buffer, offset + 9); // Compression method
+            }
+
             return buffer;
+        }
+
+        public bool IsEncrypted()
+        {
+            return Password != null;
         }
 
         public void ReadExtraInfo(byte[] buffer, int offset)

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -52,8 +53,10 @@ namespace System.IO.Compression
         private bool IsDisposed = false;
         // Default filename encoder
         private static Encoding DefaultEncoding;
-        // leave the stream open after the ZipStorer object is disposed
+        // Leave the stream open after the ZipStorer object is disposed
         private bool LeaveOpen;
+        // Password for the newly generated ZipFileEntrie's. Not a general password.
+        private SecureString Password;
         #endregion
 
         #region Public static methods
@@ -199,7 +202,6 @@ namespace System.IO.Compression
         /// <remarks>Same parameters and return value as AddStreamAsync()</remarks>
         public ZipFileEntry AddStream(Compression method, string filenameInZip, Stream source, DateTime modTime, string comment = null)
         {
-            // return this.AddStreamAsync(method, filenameInZip, source, modTime, comment);
             return Task.Run(() => this.AddStreamAsync(method, filenameInZip, source, modTime, comment)).Result;
         }
 
@@ -228,7 +230,8 @@ namespace System.IO.Compression
                 HeaderOffset = this.ZipFileStream.Position,  // offset within file of the start of this local record
                 CreationTime = modTime,
                 ModifyTime = modTime,
-                AccessTime = modTime
+                AccessTime = modTime,
+                Password = this.Password
             };
 
             // Write local header
@@ -646,6 +649,11 @@ namespace System.IO.Compression
             var entry = CentralDirectoryFiles.Where(x => x.FilenameInZip.Equals(name, comparisonType)).FirstOrDefault();
             if (entry is null) entry = Files.Where(x => x.FilenameInZip.Equals(name, comparisonType)).FirstOrDefault();
             return entry;
+        }
+
+        public void SetPassword(string password)
+        {
+            this.Password = password == null ? null : ZipEncryptor.SecurePassword(password);
         }
         #endregion
 
