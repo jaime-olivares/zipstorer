@@ -263,10 +263,12 @@ namespace ZipStorerTest
                 }
             }
 
+            File.Copy(Path.Combine(dir, "..", "lorem_ipsum.txt"), Path.Combine(dir, "File1.txt"));
+
             // zip them
             using (ZipStorer zip = ZipStorer.Create(Path.Combine(dir, "..", sampleFile5)))
             {
-                zip.AddFile(ZipStorer.Compression.Deflate, Path.Combine(dir, "lorem_ipsum.txt"), "File1.txt");  // normal file
+                zip.AddFile(ZipStorer.Compression.Deflate, Path.Combine(dir, "File1.txt"), "File1.txt");  // normal file
                 zip.AddFile(ZipStorer.Compression.Deflate, Path.Combine(dir, "File2.txt"), "File2.txt");  // Zip64 file size, normal compressed size and offset
                 zip.AddFile(ZipStorer.Compression.Store,   Path.Combine(dir, "File3.txt"), "File3.txt");  // normal file size and offset
                 zip.AddFile(ZipStorer.Compression.Deflate, Path.Combine(dir, "File2.txt"), "File4.txt");  // Zip64 file size and offset
