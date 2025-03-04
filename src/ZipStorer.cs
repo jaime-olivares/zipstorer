@@ -2,6 +2,7 @@
 // Website: http://github.com/jaime-olivares/zipstorer
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -162,7 +163,7 @@ namespace System.IO.Compression
 
             if (zip.readFileInfo())
             {
-                zip.ReadCentralDir();
+                zip.ReadCentralDir(true);
                 return zip;
             }
 
@@ -620,6 +621,31 @@ namespace System.IO.Compression
                     File.Delete(tempZipName);
             }
             return true;
+        }
+
+        /// <summary>
+        /// Returns a list of all file entries.
+        /// </summary>
+        /// <returns>List of all entries (central directory and newly added)</returns>
+        public List<ZipFileEntry> GetEntries()
+        {
+            var list = new List<ZipFileEntry>(CentralDirectoryFiles);
+            list.AddRange(Files);
+            return list;
+        }
+
+        /// <summary>
+        /// Returns the entry with the specified name.
+        /// </summary>
+        /// <param name="name">Name to search for</param>
+        /// <param name="comparisonType">StringComparison enum value</param>
+        /// <returns>ZipFileEntry found or null</returns>
+        /// <remarks>Searching with IgnoreCase in a Linux zip archive returns only the first entry found.</remarks>
+        public ZipFileEntry GetEntry(string name, StringComparison comparisonType = StringComparison.CurrentCultureIgnoreCase)
+        {
+            var entry = CentralDirectoryFiles.Where(x => x.FilenameInZip.Equals(name, comparisonType)).FirstOrDefault();
+            if (entry is null) entry = Files.Where(x => x.FilenameInZip.Equals(name, comparisonType)).FirstOrDefault();
+            return entry;
         }
         #endregion
 
