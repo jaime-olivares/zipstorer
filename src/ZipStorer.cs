@@ -98,7 +98,8 @@ namespace System.IO.Compression
                 Comment = comment ?? string.Empty,
                 ZipFileStream = stream,
                 Access = FileAccess.Write,
-                LeaveOpen = leaveOpen
+                LeaveOpen = leaveOpen,
+                CentralDirImage = new byte[0]
             };
 
             return zip;
