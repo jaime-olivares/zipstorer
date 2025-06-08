@@ -107,15 +107,16 @@ namespace System.IO.Compression
             return buffer;
         }
 
-        public void ReadExtraInfo(byte[] buffer, int offset)
+        public void ReadExtraInfo(byte[] buffer, int offset, int extraSize)
         {
             if (buffer.Length < 4)
                 return;
 
+            int start = offset;
             int pos = offset;
             uint tag, size;
 
-            while (pos < buffer.Length - 4)
+            while (pos < buffer.Length - 4 && pos - start < extraSize)
             {
                 uint extraId = BitConverter.ToUInt16(buffer, pos);
                 uint length = BitConverter.ToUInt16(buffer, pos + 2);

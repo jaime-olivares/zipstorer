@@ -384,7 +384,7 @@ namespace System.IO.Compression
 
                 if (extraSize > 0)
                 {
-                    zfe.ReadExtraInfo(CentralDirImage, pointer + 46 + filenameSize);
+                    zfe.ReadExtraInfo(CentralDirImage, pointer + 46 + filenameSize, extraSize);
                     
                     if (!skipFileOffsetCalculation && headerOffset == 0xFFFFFFFF) 
                         zfe.FileOffset = this.getFileOffset(zfe.HeaderOffset);
