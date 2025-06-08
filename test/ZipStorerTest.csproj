@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Authors>Jaime Olivares</Authors>
-    <VersionPrefix>4.1.0</VersionPrefix>
+    <VersionPrefix>4.2.0</VersionPrefix>
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>ZipStorerTest</AssemblyName>
     <PackageId>ZipStorerTest</PackageId>
